@@ -1,1 +1,13 @@
-srs bsns name grab. ideas for libsrsbsns welcome
+This is libsrsbsns, version 0.0.0
+A serious library
+
+Quickstart:
+run ./autogen.sh to setup the autohell
+afterwards, usual ./configure ; make ; make install stuff applies
+
+See INSTALL for generic autohell compile/install instructions.
+
+(C) 2012 Timo Buhrmester <van.fisted@googlemail.com>
+Contact: #fstd on irc.freenode.org
+
+See COPYING for license information
