@@ -52,3 +52,25 @@ read_line(int fd, char *dest, size_t dest_sz)
 	return bc;
 }
 #undef ISLINETERM
+
+
+void
+io_log_init(void)
+{
+	if (!LOG_ISINIT())
+		LOG_INITX("io", LOGLVL_ERR, stderr, false);
+}
+
+
+void
+io_log_level(int loglvl)
+{
+	LOG_LEVEL(loglvl);
+}
+
+
+void
+io_log_fancy(bool colors)
+{
+	LOG_COLORS(colors);
+}

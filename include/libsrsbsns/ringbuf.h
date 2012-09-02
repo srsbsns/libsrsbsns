@@ -17,4 +17,8 @@ void ringbuf_clear(ringbuf_t b);
 size_t ringbuf_get(ringbuf_t b, unsigned char *data, size_t num);
 void ringbuf_put(ringbuf_t b, unsigned char *data, size_t num);
 
+void ringbuf_log_init(void);
+void ringbuf_log_level(int loglvl);
+void ringbuf_log_fancy(bool colors);
+
 #endif /* LIBSRSBSNS_RINGBUF_H */

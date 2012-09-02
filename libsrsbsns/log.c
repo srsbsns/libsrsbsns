@@ -178,6 +178,8 @@ log_get_thrname(pthread_t thr)
 static void
 vlogf(logctx_t ctx, const char *file, int line, const char *func, int level, const char *fmt, va_list l)
 {
+	if (!ctx)
+		return;
 	static int tid = 0;
 	if (level > ctx->loglevel) //should maybe ditch it earlier
 		return;
