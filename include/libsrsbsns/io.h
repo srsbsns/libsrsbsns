@@ -10,8 +10,4 @@
 
 int read_line(int fd, char *dest, size_t dest_sz);
 
-void io_log_init(void);
-void io_log_level(int loglvl);
-void io_log_fancy(bool colors);
-
 #endif /* LIBSRSBSNS_IO_H */

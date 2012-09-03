@@ -2,63 +2,33 @@
  * libsrsbsns - A srs lib
   * See README for contact-, COPYING for license information.  */
 
-/*
-((standard C))
-(c90)
-malloc
-free
-strlen
-fputs
-strncpy
-
-(c99)
-snprintf
-vsnprintf
-va_start
-va_end
-exit
-
-((posix))
-strdup
-time
-pthread_self
-strerror_r
-
-va_list
-pthread_t
-FILE*
-bool
-*/
-
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <libsrsbsns/log.h>
 
-#include <common.h> // :s
+#include <common.h>
 
-//#include <stdio.h> //included in header
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <stdarg.h> //included in header
-//#include <stdbool.h> //included in header
+
 #include <assert.h>
 #include <errno.h>
 #include <time.h>
-//#include <pthread.h> //included in header
+
 
 #define LOGBUFSZ 2048
+#define DEF_LOGLVL LOGLVL_ERR
+#define DEF_STR stderr
+#define DEF_FANCY false
 
 #define COLSTR_RED "\033[31;01m"
 #define COLSTR_YELLOW "\033[33;01m"
 #define COLSTR_GREEN "\033[32;01m"
 #define COLSTR_GRAY "\033[30;01m"
 
-static const char* levtag(int level);
-static const char* colstr(int level);
-static void vlogf(logctx_t ctx, const char *file, int line, const char *func, int level, const char *fmt, va_list l);
 
 struct thrlist_s {
 	pthread_t thr;
@@ -66,51 +36,116 @@ struct thrlist_s {
 	struct thrlist_s *next;
 };
 
-struct thrlist_s *thrlist = NULL;
+struct ctxlist_s {
+	struct logctx_s *ctx;
+	struct ctxlist_s *next;
+};
 
-struct logctx {
-	FILE *str;
+struct logctx_s {
 	int loglevel;
 	char *mod;
-	bool colors;
+	bool fancy;
 };
 
 
-logctx_t
-log_register(const char *mod, int loglevel, FILE *str, bool colors)
-{
-	logctx_t ctx = malloc(sizeof *ctx);
-	ctx->str = str;
-	ctx->loglevel = loglevel;
-	ctx->mod = strdup(mod);
-	ctx->colors = colors;
-	return ctx;
-}
+static struct thrlist_s *s_thrlist;
+static struct ctxlist_s *s_ctxlist;
+static FILE *s_outstr;
+static time_t s_timeoff;
+
+
+static void vlogf(const char *file, int line, const char *func, int lvl,
+                                               const char *fmt, va_list l);
+static const char* levtag(int lvl);
+static const char* colstr(int lvl);
+static struct logctx_s* findctx(const char *file);
+static void addctx(struct logctx_s *ctx);
+static struct logctx_s* getctx(const char *file);
+static struct logctx_s* log_register(const char *mod, int lvl, bool fancy);
+
 
 void
-log_set_color(logctx_t ctx, bool colors)
+log_set_level(const char *file, int lvl)
 {
-	ctx->colors = colors;
+	getctx(file)->loglevel = lvl;
 }
 
-void
-log_set_mod(logctx_t ctx, const char *mod)
+
+int
+log_get_level(const char *file)
 {
-	free(ctx->mod);
-	ctx->mod = strdup(mod);
+	return getctx(file)->loglevel;
 }
 
-void
-log_set_loglvl(logctx_t ctx, int lvl)
-{
-	ctx->loglevel = lvl;
-}
 
 void
-log_set_str(logctx_t ctx, FILE *str)
+log_set_fancy(const char *file, bool fancy)
 {
-	ctx->str = str;
+	getctx(file)->fancy = fancy;
 }
+
+
+bool
+log_is_fancy(const char *file)
+{
+	return getctx(file)->fancy;
+}
+
+
+void
+log_set_str(FILE *str)
+{
+	s_outstr = str;
+}
+
+
+FILE*
+log_get_str(void)
+{
+	return s_outstr;
+}
+
+
+void
+log_set_timeoff(time_t timeoff)
+{
+	s_timeoff = timeoff;
+}
+
+
+time_t
+log_get_timeoff(void)
+{
+	return s_timeoff;
+}
+
+
+int
+log_count_mods(void)
+{
+	struct ctxlist_s *node = s_ctxlist;
+	int i = 0;
+	while(node) {
+		i++;
+		node = node->next;
+	}
+	return i;
+}
+
+
+const char*
+log_get_mod(int index)
+{
+	struct ctxlist_s *node = s_ctxlist;
+	while(node && index--)
+		node = node->next;
+
+	if (!node)
+		return NULL;
+	
+	return node->ctx->mod;
+}
+
 
 void
 log_set_thrname(pthread_t thr, const char *name)
@@ -120,10 +155,10 @@ log_set_thrname(pthread_t thr, const char *name)
 	newnode->thr = thr;
 	newnode->next = NULL;
 
-	if (!thrlist)
-		thrlist = newnode;
+	if (!s_thrlist)
+		s_thrlist = newnode;
 	else {
-		struct thrlist_s *node = thrlist;
+		struct thrlist_s *node = s_thrlist;
 
 		while(node->next) {
 			if (node->thr == thr) {
@@ -139,34 +174,11 @@ log_set_thrname(pthread_t thr, const char *name)
 	}
 }
 
-bool
-log_get_color(logctx_t ctx)
-{
-	return ctx->colors;
-}
-
-const char*
-log_get_mod(logctx_t ctx)
-{
-	return ctx->mod;
-}
-
-int
-log_get_loglvl(logctx_t ctx)
-{
-	return ctx->loglevel;
-}
-
-FILE*
-log_get_str(logctx_t ctx)
-{
-	return ctx->str;
-}
 
 const char*
 log_get_thrname(pthread_t thr)
 {
-	struct thrlist_s *node = thrlist;
+	struct thrlist_s *node = s_thrlist;
 	while(node) {
 		if (node->thr == thr)
 			return node->name;
@@ -175,259 +187,373 @@ log_get_thrname(pthread_t thr)
 	return NULL;
 }
 
+
 static void
-vlogf(logctx_t ctx, const char *file, int line, const char *func, int level, const char *fmt, va_list l)
+vlogf(const char *file, int line, const char *func, int lvl,
+                                                const char *fmt, va_list l)
 {
-	if (!ctx)
+	if (!s_outstr)
+		s_outstr = DEF_STR;
+	struct logctx_s *ctx = getctx(file);
+	if (lvl > ctx->loglevel) //should maybe ditch it earlier
 		return;
-	static int tid = 0;
-	if (level > ctx->loglevel) //should maybe ditch it earlier
-		return;
-	char buf[LOGBUFSZ];
+	char b[LOGBUFSZ];
 	const char *tname = log_get_thrname(pthread_self());
 	if (!tname) {
-		snprintf(buf, sizeof buf, "t-%d", tid++);
-		log_set_thrname(pthread_self(), buf);
+		static int tid = 0;
+		snprintf(b, sizeof b, "t-%d", tid++);
+		log_set_thrname(pthread_self(), b);
 		tname = log_get_thrname(pthread_self());
 	}
-	snprintf(buf, sizeof buf, "%s(%lu) [%6.6s] %-7.7s: %16.16s():%-4d: ",
-		(ctx->colors ? colstr(level):levtag(level)), time(NULL), tname, ctx->mod, func, line);
 
-	size_t len = strlen(buf);
-	vsnprintf(buf + len, sizeof buf - len, fmt, l);
-	if (ctx->colors)
-		strNcat(buf, "\033[0m", sizeof buf);
-	strNcat(buf, "\n", sizeof buf);
+	static int s_maxtw, s_maxmw, s_maxfw, s_maxlw, s_maxline;
 
-	fputs(buf, ctx->str);
+	if (strlen(tname) > (size_t)s_maxtw)
+		s_maxtw = strlen(tname);
+
+	if (strlen(ctx->mod) > (size_t)s_maxmw)
+		s_maxmw = strlen(ctx->mod);
+	
+	if (strlen(func) > (size_t)s_maxfw)
+		s_maxfw = strlen(func);
+
+	if (line > s_maxline) {
+		s_maxline = line;
+		char buf[32];
+		snprintf(buf, sizeof buf, "%d", line);
+		s_maxlw = (int)strlen(buf);
+	}
+
+	unsigned long t = (unsigned long)(time(NULL) - s_timeoff);
+	snprintf(b, sizeof b, "%s(%lu) [%*.*s] %-*.*s: %*.*s():%-*.*d: ",
+	               (ctx->fancy ? colstr(lvl):levtag(lvl)), t,
+	               s_maxtw, s_maxtw, tname, s_maxmw, s_maxmw, ctx->mod,
+	               s_maxfw, s_maxfw, func, s_maxlw, s_maxlw, line);
+
+	size_t len = strlen(b);
+	vsnprintf(b + len, sizeof b - len, fmt, l);
+	if (ctx->fancy)
+		strNcat(b, "\033[0m", sizeof b);
+	strNcat(b, "\n", sizeof b);
+
+	fputs(b, s_outstr);
 }
 
+
 void
-xerr(logctx_t ctx, const char *file, int line, const char *func, int eval, const char *fmt, ...)
+xerr(const char *file, int line, const char *func, int eval,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xverr(ctx, file, line, func, eval, fmt, l);
+		xverr(file, line, func, eval, fmt, l);
 	va_end(l);
 }
 
+
 void
-xerrc(logctx_t ctx, const char *file, int line, const char *func, int eval, int code, const char *fmt, ...)
+xerrc(const char *file, int line, const char *func, int eval, int code,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xverrc(ctx, file, line, func, eval, code, fmt, l);
+		xverrc(file, line, func, eval, code, fmt, l);
 	va_end(l);
 }
 
+
 void
-xerrx(logctx_t ctx, const char *file, int line, const char *func, int eval, const char *fmt, ...)
+xerrx(const char *file, int line, const char *func, int eval,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xverrx(ctx, file, line, func, eval, fmt, l);
+		xverrx(file, line, func, eval, fmt, l);
 	va_end(l);
 }
 
-void
-xverr (logctx_t ctx, const char *file, int line, const char *func, int eval, const char *fmt, va_list args)
-{
-	xverrc(ctx, file, line, func, eval, errno, fmt, args);
-}
 
 void
-xverrc(logctx_t ctx, const char *file, int line, const char *func, int eval, int code, const char *fmt, va_list args)
+xverr (const char *file, int line, const char *func, int eval,
+                                             const char *fmt, va_list args)
+{
+	xverrc(file, line, func, eval, errno, fmt, args);
+}
+
+
+void
+xverrc(const char *file, int line, const char *func, int eval, int code,
+                                             const char *fmt, va_list args)
 {
 	char buf[LOGBUFSZ];
 	strncpy(buf, fmt, sizeof buf);
 	strNcat(buf, ": ", sizeof buf);
 	size_t len = strlen(buf);
 	strerror_r(code, buf + len, sizeof buf - len);
-	xverrx(ctx, file, line, func, eval, buf, args);
+	xverrx(file, line, func, eval, buf, args);
 }
 
+
 void
-xverrx(logctx_t ctx, const char *file, int line, const char *func, int eval, const char *fmt, va_list args)
+xverrx(const char *file, int line, const char *func, int eval,
+                                             const char *fmt, va_list args)
 {
-	vlogf(ctx, file, line, func, LOGLVL_ERR, fmt, args);
+	vlogf(file, line, func, LOGLVL_ERR, fmt, args);
 	exit(eval);
 }
 
+
 void
-xwarn(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
+xwarn(const char *file, int line, const char *func, const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvwarn(ctx, file, line, func, fmt, l);
+		xvwarn(file, line, func, fmt, l);
 	va_end(l);
 }
 
+
 void
-xwarnc(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, ...)
+xwarnc(const char *file, int line, const char *func, int code,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvwarnc(ctx, file, line, func, code, fmt, l);
+		xvwarnc(file, line, func, code, fmt, l);
 	va_end(l);
 }
 
+
 void
-xwarnx(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
+xwarnx(const char *file, int line, const char *func, const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvwarnx(ctx, file, line, func, fmt, l);
+		xvwarnx(file, line, func, fmt, l);
 	va_end(l);
 }
 
-void
-xvwarn (logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
-{
-	xvwarnc(ctx, file, line, func, errno, fmt, args);
-}
 
 void
-xvwarnc(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, va_list args)
+xvwarn (const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
+{
+	xvwarnc(file, line, func, errno, fmt, args);
+}
+
+
+void
+xvwarnc(const char *file, int line, const char *func, int code,
+                                             const char *fmt, va_list args)
 {
 	char buf[LOGBUFSZ];
 	strncpy(buf, fmt, sizeof buf);
 	strNcat(buf, ": ", sizeof buf);
 	size_t len = strlen(buf);
 	strerror_r(code, buf + len, sizeof buf - len);
-	xvwarnx(ctx, file, line, func, buf, args);
+	xvwarnx(file, line, func, buf, args);
 }
 
+
 void
-xvwarnx(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
+xvwarnx(const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
 {
-	vlogf(ctx, file, line, func, LOGLVL_WARN, fmt, args);
+	vlogf(file, line, func, LOGLVL_WARN, fmt, args);
 }
 
-void
-xnote(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
-{
-	va_list l;
-	va_start(l, fmt);
-		xvnote(ctx, file, line, func, fmt, l);
-	va_end(l);
-}
 
 void
-xnotec(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, ...)
+xnote(const char *file, int line, const char *func, const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvnotec(ctx, file, line, func, code, fmt, l);
+		xvnote(file, line, func, fmt, l);
 	va_end(l);
 }
 
+
 void
-xnotex(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
+xnotec(const char *file, int line, const char *func, int code,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvnotex(ctx, file, line, func, fmt, l);
+		xvnotec(file, line, func, code, fmt, l);
 	va_end(l);
 }
 
-void
-xvnote (logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
-{
-	xvnotec(ctx, file, line, func, errno, fmt, args);
-}
 
 void
-xvnotec(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, va_list args)
+xnotex(const char *file, int line, const char *func, const char *fmt, ...)
+{
+	va_list l;
+	va_start(l, fmt);
+		xvnotex(file, line, func, fmt, l);
+	va_end(l);
+}
+
+
+void
+xvnote (const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
+{
+	xvnotec(file, line, func, errno, fmt, args);
+}
+
+
+void
+xvnotec(const char *file, int line, const char *func, int code,
+                                             const char *fmt, va_list args)
 {
 	char buf[LOGBUFSZ];
 	strncpy(buf, fmt, sizeof buf);
 	strNcat(buf, ": ", sizeof buf);
 	size_t len = strlen(buf);
 	strerror_r(code, buf + len, sizeof buf - len);
-	xvnotex(ctx, file, line, func, buf, args);
+	xvnotex(file, line, func, buf, args);
 }
 
+
 void
-xvnotex(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
+xvnotex(const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
 {
-	vlogf(ctx, file, line, func, LOGLVL_NOTE, fmt, args);
+	vlogf(file, line, func, LOGLVL_NOTE, fmt, args);
 }
 
-void
-xdbg(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
-{
-	va_list l;
-	va_start(l, fmt);
-		xvdbg(ctx, file, line, func, fmt, l);
-	va_end(l);
-}
 
 void
-xdbgc(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, ...)
+xdbg(const char *file, int line, const char *func, const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvdbgc(ctx, file, line, func, code, fmt, l);
+		xvdbg(file, line, func, fmt, l);
 	va_end(l);
 }
 
+
 void
-xdbgx(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, ...)
+xdbgc(const char *file, int line, const char *func, int code,
+                                                      const char *fmt, ...)
 {
 	va_list l;
 	va_start(l, fmt);
-		xvdbgx(ctx, file, line, func, fmt, l);
+		xvdbgc(file, line, func, code, fmt, l);
 	va_end(l);
 }
 
-void
-xvdbg (logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
-{
-	xvdbgc(ctx, file, line, func, errno, fmt, args);
-}
 
 void
-xvdbgc(logctx_t ctx, const char *file, int line, const char *func, int code, const char *fmt, va_list args)
+xdbgx(const char *file, int line, const char *func, const char *fmt, ...)
+{
+	va_list l;
+	va_start(l, fmt);
+		xvdbgx(file, line, func, fmt, l);
+	va_end(l);
+}
+
+
+void
+xvdbg(const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
+{
+	xvdbgc(file, line, func, errno, fmt, args);
+}
+
+
+void
+xvdbgc(const char *file, int line, const char *func, int code,
+                                             const char *fmt, va_list args)
 {
 	char buf[LOGBUFSZ];
 	strncpy(buf, fmt, sizeof buf);
 	strNcat(buf, ": ", sizeof buf);
 	size_t len = strlen(buf);
 	strerror_r(code, buf + len, sizeof buf - len);
-	xvdbgx(ctx, file, line, func, buf, args);
+	xvdbgx(file, line, func, buf, args);
 }
 
+
 void
-xvdbgx(logctx_t ctx, const char *file, int line, const char *func, const char *fmt, va_list args)
+xvdbgx(const char *file, int line, const char *func,
+                                             const char *fmt, va_list args)
 {
-	vlogf(ctx, file, line, func, LOGLVL_DBG, fmt, args);
+	vlogf(file, line, func, LOGLVL_DBG, fmt, args);
 }
 
 
 static const char*
-levtag(int level)
+levtag(int lvl)
 {
-	switch(level) {
+	switch(lvl) {
 		case LOGLVL_ERR: return "[ERR] ";
 		case LOGLVL_WARN: return "[WRN] ";
 		case LOGLVL_NOTE: return "[NOT] ";
 		case LOGLVL_DBG: return "[DBG] ";
-		default:
-			assert(false);
+		default: return "[???]";
+			
 	}
-	return "";
 }
 
+
 static const char*
-colstr(int level)
+colstr(int lvl)
 {
-	switch(level) {
+	switch(lvl) {
 		case LOGLVL_ERR: return COLSTR_RED;
 		case LOGLVL_WARN: return COLSTR_YELLOW;
 		case LOGLVL_NOTE: return COLSTR_GREEN;
 		case LOGLVL_DBG: return COLSTR_GRAY;
-		default:
-			assert(false);
+		default: return "";
 	}
-	return "";
+}
+
+
+static struct logctx_s*
+findctx(const char *file)
+{
+	struct ctxlist_s *node = s_ctxlist;
+	while(node) {
+		if (strcmp(node->ctx->mod, file) == 0)
+			return node->ctx;
+		node = node->next;
+	}
+	return NULL;
+}
+
+
+static void
+addctx(struct logctx_s *ctx)
+{
+	struct ctxlist_s *node = malloc(sizeof *node);
+	if (!node)
+		return;
+	
+	node->next = s_ctxlist;
+	node->ctx = ctx;
+	s_ctxlist = node;
+}
+
+
+static struct logctx_s*
+getctx(const char *file)
+{
+	struct logctx_s *ctx = findctx(file);
+	if (!ctx) {
+		ctx = log_register(file, DEF_LOGLVL, DEF_FANCY);
+		addctx(ctx);
+	}
+	return ctx;
+}
+
+
+static struct logctx_s*
+log_register(const char *mod, int lvl, bool fancy)
+{
+	struct logctx_s *ctx = malloc(sizeof *ctx);
+	ctx->loglevel = lvl;
+	ctx->mod = strdup(mod);
+	ctx->fancy = fancy;
+	return ctx;
 }
