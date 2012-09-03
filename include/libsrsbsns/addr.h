@@ -16,8 +16,4 @@ int bind_socket(const char *localif, unsigned short port);
 /* backend */
 int mksocket(const char *addr, unsigned short port, int aflags, conbind_t func);
 
-void addr_log_init(void);
-void addr_log_level(int loglvl);
-void addr_log_fancy(bool colors);
-
 #endif /* LIBSRSBSNS_ADDR_H */

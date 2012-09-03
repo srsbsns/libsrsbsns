@@ -164,24 +164,3 @@ ringbuf_dump(ringbuf_t b)
 	fprintf(stderr,  "this is it\n");
 }
 */
-
-void
-ringbuf_log_init(void)
-{
-	if (!LOG_ISINIT())
-		LOG_INITX("ringbuf", LOGLVL_ERR, stderr, false);
-}
-
-
-void
-ringbuf_log_level(int loglvl)
-{
-	LOG_LEVEL(loglvl);
-}
-
-
-void
-ringbuf_log_fancy(bool colors)
-{
-	LOG_COLORS(colors);
-}

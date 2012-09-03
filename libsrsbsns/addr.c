@@ -107,25 +107,3 @@ bind_socket(const char *localif, unsigned short port)
 {
 	return mksocket(localif, port, AI_ADDRCONFIG | AI_PASSIVE, bind);
 }
-
-
-void
-addr_log_init(void)
-{
-	if (!LOG_ISINIT())
-		LOG_INITX("addr", LOGLVL_ERR, stderr, false);
-}
-
-
-void
-addr_log_level(int loglvl)
-{
-	LOG_LEVEL(loglvl);
-}
-
-
-void
-addr_log_fancy(bool colors)
-{
-	LOG_COLORS(colors);
-}
