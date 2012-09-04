@@ -8,7 +8,7 @@
 
 #include <libsrsbsns/io.h>
 
-#include <libsrsbsns/log.h>
+#include <libsrslog/log.h>
 
 #include <stdio.h>
 #include <stdlib.h>

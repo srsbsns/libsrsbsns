@@ -28,7 +28,7 @@ connect
 
 #include <libsrsbsns/addr.h>
 
-#include <libsrsbsns/log.h>
+#include <libsrslog/log.h>
 
 #include <stddef.h>
 #include <stdio.h>

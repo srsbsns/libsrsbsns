@@ -19,6 +19,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 AC_CHECK_HEADERS([netdb.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h])
+AC_CHECK_LIB([srslog], [log_is_fancy], [], [AC_MSG_ERROR([libsrslog not installed?])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

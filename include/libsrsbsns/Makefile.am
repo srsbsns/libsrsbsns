@@ -1,1 +1,1 @@
-pkginclude_HEADERS = addr.h io.h log.h ringbuf.h
+pkginclude_HEADERS = addr.h io.h ringbuf.h

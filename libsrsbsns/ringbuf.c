@@ -8,7 +8,7 @@
 
 #include <libsrsbsns/ringbuf.h>
 
-#include <libsrsbsns/log.h>
+#include <libsrslog/log.h>
 
 #include <stdlib.h>
 #include <string.h>
