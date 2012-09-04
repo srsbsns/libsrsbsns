@@ -21,7 +21,7 @@
 
 #define ISLINETERM(C) ((C) == '\n' || (C) == '\r' || (C) == '\0')
 int
-read_line(int fd, char *dest, size_t dest_sz)
+io_read_line(int fd, char *dest, size_t dest_sz)
 {
 	size_t bc = 0;
 	char c = '\0';

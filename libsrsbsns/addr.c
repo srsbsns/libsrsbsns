@@ -42,7 +42,7 @@ connect
 
 
 int
-mksocket(const char *addr, unsigned short port, int aflags, conbind_t func)
+addr_mksocket(const char *addr, unsigned short port, int aflags, conbind_t func)
 {
 	struct addrinfo *ai_list = NULL;
 	struct addrinfo hints;
@@ -97,13 +97,13 @@ mksocket(const char *addr, unsigned short port, int aflags, conbind_t func)
 }
 
 int
-connect_socket(const char *host, unsigned short port)
+addr_connect_socket(const char *host, unsigned short port)
 {
-	return mksocket(host, port, 0, connect);
+	return addr_mksocket(host, port, 0, connect);
 }
 
 int
-bind_socket(const char *localif, unsigned short port)
+addr_bind_socket(const char *localif, unsigned short port)
 {
-	return mksocket(localif, port, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	return addr_mksocket(localif, port, AI_ADDRCONFIG | AI_PASSIVE, bind);
 }

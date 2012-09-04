@@ -8,6 +8,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-int read_line(int fd, char *dest, size_t dest_sz);
+int io_read_line(int fd, char *dest, size_t dest_sz);
 
 #endif /* LIBSRSBSNS_IO_H */

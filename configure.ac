@@ -32,7 +32,6 @@ AC_CHECK_FUNCS([gettimeofday memset socket strdup])
 
 # Checks for header files (1).
 AC_CONFIG_FILES([Makefile
-		 common/Makefile
 		 include/Makefile
 		 include/libsrsbsns/Makefile
 		 libsrsbsns/Makefile
