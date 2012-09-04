@@ -52,6 +52,8 @@ static struct thrlist_s *s_thrlist;
 static struct ctxlist_s *s_ctxlist;
 static FILE *s_outstr;
 static time_t s_timeoff;
+static pthread_mutex_t s_mtx;
+static bool s_mtxinit;
 
 
 static void vlogf(const char *file, int line, const char *func, int lvl,
@@ -62,73 +64,96 @@ static struct logctx_s* findctx(const char *file);
 static void addctx(struct logctx_s *ctx);
 static struct logctx_s* getctx(const char *file);
 static struct logctx_s* log_register(const char *mod, int lvl, bool fancy);
+static pthread_mutex_t* mtx(void);
 
 
 void
 log_set_level(const char *file, int lvl)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	getctx(file)->loglevel = lvl;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 }
 
 
 int
 log_get_level(const char *file)
 {
-	return getctx(file)->loglevel;
+	ENSURE(pthread_mutex_lock(mtx()), 0);
+	int i = getctx(file)->loglevel;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
+	return i;
 }
 
 
 void
 log_set_fancy(const char *file, bool fancy)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	getctx(file)->fancy = fancy;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 }
 
 
 bool
 log_is_fancy(const char *file)
 {
-	return getctx(file)->fancy;
+	ENSURE(pthread_mutex_lock(mtx()), 0);
+	bool b = getctx(file)->fancy;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
+	return b;
 }
 
 
 void
 log_set_str(FILE *str)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	s_outstr = str;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 }
 
 
 FILE*
 log_get_str(void)
 {
-	return s_outstr;
+	ENSURE(pthread_mutex_lock(mtx()), 0);
+	FILE *str = s_outstr;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
+	return str;
 }
 
 
 void
 log_set_timeoff(time_t timeoff)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	s_timeoff = timeoff;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 }
 
 
 time_t
 log_get_timeoff(void)
 {
-	return s_timeoff;
+	ENSURE(pthread_mutex_lock(mtx()), 0);
+	time_t i = s_timeoff;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
+	return i;
 }
 
 
 int
 log_count_mods(void)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	struct ctxlist_s *node = s_ctxlist;
 	int i = 0;
 	while(node) {
 		i++;
 		node = node->next;
 	}
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 	return i;
 }
 
@@ -136,13 +161,17 @@ log_count_mods(void)
 const char*
 log_get_mod(int index)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	struct ctxlist_s *node = s_ctxlist;
 	while(node && index--)
 		node = node->next;
 
-	if (!node)
+	if (!node) {
+		ENSURE(pthread_mutex_unlock(mtx()), 0);
 		return NULL;
+	}
 	
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 	return node->ctx->mod;
 }
 
@@ -155,6 +184,8 @@ log_set_thrname(pthread_t thr, const char *name)
 	newnode->thr = thr;
 	newnode->next = NULL;
 
+	ENSURE(pthread_mutex_lock(mtx()), 0);
+
 	if (!s_thrlist)
 		s_thrlist = newnode;
 	else {
@@ -165,6 +196,7 @@ log_set_thrname(pthread_t thr, const char *name)
 				free(node->name);
 				node->name = strdup(name);
 				free(newnode);
+				ENSURE(pthread_mutex_unlock(mtx()), 0);
 				return;
 			}
 			node = node->next;
@@ -172,18 +204,23 @@ log_set_thrname(pthread_t thr, const char *name)
 		
 		node->next = newnode;
 	}
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 }
 
 
 const char*
 log_get_thrname(pthread_t thr)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	struct thrlist_s *node = s_thrlist;
 	while(node) {
-		if (node->thr == thr)
+		if (node->thr == thr) {
+			ENSURE(pthread_mutex_unlock(mtx()), 0);
 			return node->name;
+		}
 		node = node->next;
 	}
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 	return NULL;
 }
 
@@ -192,11 +229,14 @@ static void
 vlogf(const char *file, int line, const char *func, int lvl,
                                                 const char *fmt, va_list l)
 {
+	ENSURE(pthread_mutex_lock(mtx()), 0);
 	if (!s_outstr)
 		s_outstr = DEF_STR;
 	struct logctx_s *ctx = getctx(file);
-	if (lvl > ctx->loglevel) //should maybe ditch it earlier
+	if (lvl > ctx->loglevel) { //should maybe ditch it earlier
+		ENSURE(pthread_mutex_unlock(mtx()), 0);
 		return;
+	}
 	char b[LOGBUFSZ];
 	const char *tname = log_get_thrname(pthread_self());
 	if (!tname) {
@@ -235,8 +275,10 @@ vlogf(const char *file, int line, const char *func, int lvl,
 	if (ctx->fancy)
 		strNcat(b, "\033[0m", sizeof b);
 	strNcat(b, "\n", sizeof b);
+	FILE *str = s_outstr;
+	ENSURE(pthread_mutex_unlock(mtx()), 0);
 
-	fputs(b, s_outstr);
+	fputs(b, str);
 }
 
 
@@ -556,4 +598,14 @@ log_register(const char *mod, int lvl, bool fancy)
 	ctx->mod = strdup(mod);
 	ctx->fancy = fancy;
 	return ctx;
+}
+
+static pthread_mutex_t*
+mtx(void)
+{
+	if (!s_mtxinit) {
+		ENSURE(pthread_mutex_init(&s_mtx, NULL), 0);
+		s_mtxinit = true;
+	}
+	return &s_mtx;
 }
