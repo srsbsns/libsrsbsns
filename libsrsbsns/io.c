@@ -20,6 +20,9 @@
 #include <unistd.h>
 
 #define ISLINETERM(C) ((C) == '\n' || (C) == '\r' || (C) == '\0')
+#define MAX_WRITEBUF 4096
+
+
 int
 io_read_line(int fd, char *dest, size_t dest_sz)
 {
@@ -50,5 +53,43 @@ io_read_line(int fd, char *dest, size_t dest_sz)
 	dest[(bc >= dest_sz) ? dest_sz - 1 : bc] = '\0';
 	//fprintf(stderr, "returning bc i.e. %d\n", bc);
 	return bc;
+}
+
+int
+io_fprintf(int fd, const char *fmt, ...)
+{
+	va_list l;
+	va_start(l, fmt);
+	int r = io_vfprintf(fd, fmt, l);
+	va_end(l);
+	return r;
+}
+
+int
+io_vfprintf(int fd, const char *fmt, va_list ap)
+{
+	char buf[MAX_WRITEBUF];
+	int r = vsnprintf(buf, sizeof buf, fmt, ap);
+
+
+	if (!io_writeall(fd, buf, strlen(buf)))
+		return -1;
+	
+	return r;
+}
+
+bool
+io_writeall(int fd, const char *buf, size_t n)
+{
+	size_t bc = 0;
+	while(bc < n) {
+		ssize_t r = write(fd, buf + bc, n - bc);
+		if (r == -1) {
+			WE("io_writeall, write() failed");
+			return false;
+		}
+		bc += (size_t)r;
+	}
+	return true;
 }
 #undef ISLINETERM
