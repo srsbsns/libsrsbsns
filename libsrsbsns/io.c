@@ -32,8 +32,14 @@ io_read_line(int fd, char *dest, size_t dest_sz)
 	do {
 		r = read(fd, &c, 1);
 		//fprintf(stderr, "read: %d (%hhx; %c)\n", r, (char)(r == 1 ? c : 0), (char)(r == 1 ? c : '?'));
-		if      (r == 0)  break; //EOF
-		else if (r == -1) return -1;
+		if (r == 0) {
+			W("EOF after %zu/%zu bytes (and c is %hhx)", bc, dest_sz, c);
+			break; //EOF
+		}
+		else if (r == -1) {
+			W("read failed after %zu/%zu bytes", bc, dest_sz);
+			return -1;
+		}
 		assert (r == 1);
 
 		if (bc < dest_sz) {
