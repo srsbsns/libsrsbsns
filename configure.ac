@@ -25,6 +25,7 @@ AC_CHECK_LIB([srslog], [log_is_fancy], [], [AC_MSG_ERROR([libsrslog not installe
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_INT64_T
 AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 
 # Checks for library functions.
 AC_FUNC_STRERROR_R
