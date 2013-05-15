@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include <assert.h>
 
@@ -30,6 +31,7 @@ io_read_line(int fd, char *dest, size_t dest_sz)
 	char c = '\0';
 	int r;
 	do {
+		errno = 0;
 		r = read(fd, &c, 1);
 		//fprintf(stderr, "read: %d (%hhx; %c)\n", r, (char)(r == 1 ? c : 0), (char)(r == 1 ? c : '?'));
 		if (r == 0) {
@@ -37,7 +39,7 @@ io_read_line(int fd, char *dest, size_t dest_sz)
 			break; //EOF
 		}
 		else if (r == -1) {
-			W("read failed after %zu/%zu bytes", bc, dest_sz);
+			WE("read failed after %zu/%zu bytes", bc, dest_sz);
 			return -1;
 		}
 		assert (r == 1);
