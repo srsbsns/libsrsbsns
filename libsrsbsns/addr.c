@@ -10,7 +10,6 @@
 struct addrinfo
 memset
 AF_UNSPEC
-SOCK_STREAM
 AI_NUMERICSERV
 snprintf
 getaddrinfo
@@ -40,15 +39,14 @@ connect
 #include <sys/types.h>
 #include <netdb.h>
 
-
 int
-addr_mksocket(const char *addr, unsigned short port, int aflags, conbind_t func)
+addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, conbind_t func)
 {
 	struct addrinfo *ai_list = NULL;
 	struct addrinfo hints;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_socktype = socktype;//SOCK_STREAM
 	hints.ai_protocol = 0;
 	hints.ai_flags = AI_NUMERICSERV | aflags;
 	char portstr[6];
@@ -99,11 +97,23 @@ addr_mksocket(const char *addr, unsigned short port, int aflags, conbind_t func)
 int
 addr_connect_socket(const char *host, unsigned short port)
 {
-	return addr_mksocket(host, port, 0, connect);
+	return addr_mksocket(host, port, SOCK_STREAM, 0, connect);
 }
 
 int
 addr_bind_socket(const char *localif, unsigned short port)
 {
-	return addr_mksocket(localif, port, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	return addr_mksocket(localif, port, SOCK_STREAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+}
+
+int
+addr_connect_socket_dgram(const char *host, unsigned short port)
+{
+	return addr_mksocket(host, port, SOCK_DGRAM, 0, connect);
+}
+
+int
+addr_bind_socket_dgram(const char *localif, unsigned short port)
+{
+	return addr_mksocket(localif, port, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
 }
