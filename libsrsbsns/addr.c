@@ -27,8 +27,6 @@ connect
 
 #include <libsrsbsns/addr.h>
 
-#include <libsrslog/log.h>
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,6 +37,8 @@ connect
 
 #include <sys/types.h>
 #include <netdb.h>
+
+#include <err.h>
 
 int
 addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, conbind_t func)
@@ -56,12 +56,12 @@ addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, c
 	int r = getaddrinfo(addr, portstr, &hints, &ai_list);
 
 	if (r != 0) {
-		W("%s", gai_strerror(r));
+		warnx("%s", gai_strerror(r));
 		return -1;
 	}
 
 	if (!ai_list) {
-		W("result address list empty");
+		warnx("result address list empty");
 		return -1;
 	}
 
@@ -71,7 +71,7 @@ addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, c
 	{
 		sck = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sck < 0) {
-			WE("cannot create socket");
+			warn("cannot create socket");
 			continue;
 		}
 
@@ -81,7 +81,7 @@ addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, c
 
 			if (r != 0)
 			{
-				WE("target function (connect/bind) failed");
+				warn("target function (connect/bind) failed");
 				close(sck);
 				sck = -1;
 				continue;

@@ -8,10 +8,10 @@
 
 #include <libsrsbsns/ringbuf.h>
 
-#include <libsrslog/log.h>
-
 #include <stdlib.h>
 #include <string.h>
+
+#include <err.h>
 
 struct ringbuf {
 	unsigned char *buf;
@@ -69,7 +69,7 @@ ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
 
 	bool wrapped = b->num > 0 && b->head <= b->tail;
 	if (wrapped)
-		W("get: we're wrapped");
+		warnx("get: we're wrapped");
 	size_t avail1 = !wrapped ? b->head - b->tail : (b->bufsz - (b->tail - b->buf));
 
 	if (avail1 >= num) {
@@ -78,7 +78,7 @@ ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
 	} else {
 		memcpy(data, b->tail, avail1);
 		memcpy(data + avail1, b->buf, num - avail1);
-		W("get: mhhhhhhhhhhhhm");
+		warnx("get: mhhhhhhhhhhhhm");
 		b->tail = b->buf + (num - avail1);
 	}
 	b->num -= num;
@@ -91,7 +91,7 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 {
 	bool wrapped = b->num > 0 && b->head <= b->tail;
 	if (wrapped)
-		W("put: we're wrapped\n");
+		warnx("put: we're wrapped\n");
 	size_t avail = b->bufsz - b->num;
 	if (num > avail)
 	{
@@ -103,7 +103,7 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 		if (!wrapped) {
 			memcpy(nbuf, b->tail, b->head - b->tail);
 		} else {
-			W("put: mhm\n");
+			warnx("put: mhm\n");
 			size_t firstlen = b->bufsz - (b->tail - b->buf);
 			memcpy(nbuf, b->tail, firstlen);
 			memcpy(nbuf + firstlen, b->buf, b->head - b->buf);
@@ -126,7 +126,7 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 		memcpy(b->head, data, avail1);
 		memcpy(b->buf, data + avail1, num - avail1);
 		b->head = b->buf + (num - avail1);
-		W("put: mhhhhhhhhhhhhm\n");
+		warnx("put: mhhhhhhhhhhhhm\n");
 	}
 	b->num += num;
 }
