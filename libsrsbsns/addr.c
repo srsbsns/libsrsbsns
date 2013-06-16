@@ -30,6 +30,7 @@ connect
 #include <libsrslog/log.h>
 
 #include <stddef.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -116,4 +117,19 @@ int
 addr_bind_socket_dgram(const char *localif, unsigned short port)
 {
 	return addr_mksocket(localif, port, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+}
+
+void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
+		unsigned short *port, const char *hostspec)
+{
+	strncpy(hoststr, hostspec, hoststr_sz);
+	char *ptr = strchr(hoststr, ']');
+	if (!ptr)
+		ptr = hoststr;
+	ptr = strchr(ptr, ':');
+	if (ptr) {
+		*port = (unsigned short)strtol(ptr+1, NULL, 10);
+		*ptr = '\0';
+	} else
+		*port = 0;
 }

@@ -19,4 +19,7 @@ int addr_bind_socket_dgram(const char *localif, unsigned short port);
 /* backend */
 int addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, conbind_t func);
 
+/* split a hostspec ("host[:port]") where host may be FQDN, IPv4 addr or [IPv6] addr
+ * store results in ,,hoststr'' and ,,port'' */
+void addr_parse_hostspec(char *hoststr, size_t hoststr_sz, unsigned short *port, const char *hostspec);
 #endif /* LIBSRSBSNS_ADDR_H */
