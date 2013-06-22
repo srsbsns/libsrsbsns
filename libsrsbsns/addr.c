@@ -36,6 +36,7 @@ connect
 #include <unistd.h>
 
 #include <sys/types.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 
 #include <err.h>
@@ -114,9 +115,33 @@ addr_connect_socket_dgram(const char *host, unsigned short port)
 }
 
 int
-addr_bind_socket_dgram(const char *localif, unsigned short port)
+addr_bind_socket_dgram(const char *localif, unsigned short port, bool bc, bool ra)
 {
-	return addr_mksocket(localif, port, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	int s = addr_mksocket(localif, port, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	if (s >= 0 && bc) {
+		int on = 1;
+		errno = 0;
+		if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) != 0) {
+			warn("setsockopt failed to enable broadcast");
+			close(s);
+			s = -1;
+		}
+	}
+	if (s >= 0 && ra) {
+		int on = 1;
+		errno = 0;
+		if (setsockopt(s, SOL_SOCKET, SO_BROADCAST, &on, sizeof(on)) != 0) {
+			warn("setsockopt failed to enable broadcast");
+			close(s);
+			s = -1;
+		}
+
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
+			warn("setsockopt failed to enable REUSEADDR");
+			/*not so critical, we can continue*/
+		}
+	}
+	return s;
 }
 
 void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
@@ -132,4 +157,69 @@ void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
 		*ptr = '\0';
 	} else
 		*port = 0;
+}
+
+
+static bool
+addr_make_sockaddr_in6(const char *ip, unsigned short port,
+		struct sockaddr_in6 *dst)
+{
+	errno = 0;
+	int r = inet_pton(AF_INET6, ip, &dst->sin6_addr);
+	if (r == 0) {
+		warnx("illegal ipv6 string '%s'", ip);
+		return false;
+	}
+
+	if (r < 0) {
+		warn("inet_pton");
+		return false;
+	}
+
+	dst->sin6_family = AF_INET6;
+	dst->sin6_port = htons(port);
+	return true;
+}
+
+
+static bool
+addr_make_sockaddr_in4(const char *ip, unsigned short port,
+		struct sockaddr_in *dst)
+{
+	errno = 0;
+	int r = inet_pton(AF_INET, ip, &dst->sin_addr);
+	if (r == 0) {
+		warnx("illegal ipv4 string '%s'", ip);
+		return false;
+	}
+
+	if (r < 0) {
+		warn("inet_pton");
+		return false;
+	}
+
+	dst->sin_family = AF_INET;
+	dst->sin_port = htons(port);
+	return true;
+}
+
+/* ip format: "x.y.z.w:port" for ipv4, "[a:b:c::h]:port" for ipv6" */
+int
+addr_make_sockaddr(const char *ip, struct sockaddr *dst)
+{
+	char host[256];
+	unsigned short port;
+	addr_parse_hostspec(host, sizeof host, &port, ip);
+	
+	int r;
+
+	if (host[0] == '[') {
+		host[strlen(host)-1] = '\0';
+		r = addr_make_sockaddr_in6(host+1, port,
+				(struct sockaddr_in6*)dst);
+	} else
+		r = addr_make_sockaddr_in4(host, port,
+				(struct sockaddr_in*)dst);
+
+	return r;
 }
