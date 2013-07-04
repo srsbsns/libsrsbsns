@@ -8,29 +8,40 @@
 
 #include <libsrsbsns/io.h>
 
-#include <libsrsbsns/log.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <errno.h>
 
 #include <assert.h>
 
 #include <unistd.h>
 
+#include <err.h>
+
 #define ISLINETERM(C) ((C) == '\n' || (C) == '\r' || (C) == '\0')
+#define MAX_WRITEBUF 4096
+
+
 int
-read_line(int fd, char *dest, size_t dest_sz)
+io_read_line(int fd, char *dest, size_t dest_sz)
 {
 	size_t bc = 0;
 	char c = '\0';
 	int r;
 	do {
+		errno = 0;
 		r = read(fd, &c, 1);
 		//fprintf(stderr, "read: %d (%hhx; %c)\n", r, (char)(r == 1 ? c : 0), (char)(r == 1 ? c : '?'));
-		if      (r == 0)  break; //EOF
-		else if (r == -1) return -1;
+		if (r == 0) {
+			warnx("EOF after %zu/%zu bytes (and c is %hhx)", bc, dest_sz, c);
+			break; //EOF
+		}
+		else if (r == -1) {
+			warn("read failed after %zu/%zu bytes", bc, dest_sz);
+			return -1;
+		}
 		assert (r == 1);
 
 		if (bc < dest_sz) {
@@ -51,26 +62,42 @@ read_line(int fd, char *dest, size_t dest_sz)
 	//fprintf(stderr, "returning bc i.e. %d\n", bc);
 	return bc;
 }
+
+int
+io_fprintf(int fd, const char *fmt, ...)
+{
+	va_list l;
+	va_start(l, fmt);
+	int r = io_vfprintf(fd, fmt, l);
+	va_end(l);
+	return r;
+}
+
+int
+io_vfprintf(int fd, const char *fmt, va_list ap)
+{
+	char buf[MAX_WRITEBUF];
+	int r = vsnprintf(buf, sizeof buf, fmt, ap);
+
+
+	if (!io_writeall(fd, buf, strlen(buf)))
+		return -1;
+	
+	return r;
+}
+
+bool
+io_writeall(int fd, const char *buf, size_t n)
+{
+	size_t bc = 0;
+	while(bc < n) {
+		ssize_t r = write(fd, buf + bc, n - bc);
+		if (r == -1) {
+			warn("io_writeall, write() failed");
+			return false;
+		}
+		bc += (size_t)r;
+	}
+	return true;
+}
 #undef ISLINETERM
-
-
-void
-io_log_init(void)
-{
-	if (!LOG_ISINIT())
-		LOG_INITX("io", LOGLVL_ERR, stderr, false);
-}
-
-
-void
-io_log_level(int loglvl)
-{
-	LOG_LEVEL(loglvl);
-}
-
-
-void
-io_log_fancy(bool colors)
-{
-	LOG_COLORS(colors);
-}

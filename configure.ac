@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([libsrsbsns], [0.0.0], [van.fisted@googlemail.com])
+AC_INIT([libsrsbsns], [0.0.1], [van.fisted@googlemail.com])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/srstest.c])
 AC_CONFIG_HEADERS([config.h])
@@ -24,6 +24,7 @@ AC_CHECK_HEADERS([netdb.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/t
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_INT64_T
 AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 
 # Checks for library functions.
 AC_FUNC_STRERROR_R
@@ -31,7 +32,6 @@ AC_CHECK_FUNCS([gettimeofday memset socket strdup])
 
 # Checks for header files (1).
 AC_CONFIG_FILES([Makefile
-		 common/Makefile
 		 include/Makefile
 		 include/libsrsbsns/Makefile
 		 libsrsbsns/Makefile
