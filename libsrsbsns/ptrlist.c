@@ -240,9 +240,8 @@ void
 ptrlist_dump(ptrlist_t l)
 {
 	#define M(X, A...) fprintf(stderr, X, ##A)
-	M("===ptrlist dump===\n");
 	if (!l)
-		M("nullpointer...\n");
+		return;
 
 	size_t c = ptrlist_count(l);
 	M("%zu elements: [", c);
@@ -255,8 +254,6 @@ ptrlist_dump(ptrlist_t l)
 	}
 
 	M("]\n");
-	
-	M("===end of ptrlist dump===\n");
 	#undef M
 }
 
