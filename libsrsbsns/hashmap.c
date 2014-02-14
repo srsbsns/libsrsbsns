@@ -83,7 +83,7 @@ hmap_dispose(hmap_t h)
 }
 
 void
-hmap_put(hmap_t h, void *key, void *elem)
+hmap_put(hmap_t h, const void *key, const void *elem)
 {
 	if (!h)
 		return;
@@ -105,8 +105,8 @@ hmap_put(hmap_t h, void *key, void *elem)
 		ptrlist_replace(vl, i, elem);
 }
 
-void*
-hmap_get(hmap_t h, void *key)
+const void*
+hmap_get(hmap_t h, const void *key)
 {
 	if (!h)
 		return NULL;
@@ -124,7 +124,7 @@ hmap_get(hmap_t h, void *key)
 }
 
 bool
-hmap_del(hmap_t h, void *key)
+hmap_del(hmap_t h, const void *key)
 {
 	if (!h)
 		return false;

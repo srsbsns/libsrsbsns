@@ -14,7 +14,7 @@
 #include <libsrsbsns/ptrlist.h>
 
 struct pl_node {
-	void *data;
+	const void *data;
 	struct pl_node *next;
 };
 
@@ -71,7 +71,7 @@ ptrlist_clear(ptrlist_t l)
 }
 
 bool
-ptrlist_insert(ptrlist_t l, size_t i, void *data)
+ptrlist_insert(ptrlist_t l, size_t i, const void *data)
 {
 	if (!l) 
 		return false;
@@ -110,7 +110,7 @@ ptrlist_insert(ptrlist_t l, size_t i, void *data)
 }
 
 bool
-ptrlist_replace(ptrlist_t l, size_t i, void *data)
+ptrlist_replace(ptrlist_t l, size_t i, const void *data)
 {
 	if (!l || !l->head)
 		return false;
@@ -160,7 +160,7 @@ ptrlist_remove(ptrlist_t l, size_t i)
 	return true;
 }
 
-void*
+const void*
 ptrlist_get(ptrlist_t l, size_t i)
 {
 	if (!l || !l->head)
@@ -181,7 +181,7 @@ ptrlist_get(ptrlist_t l, size_t i)
 
 
 ssize_t
-ptrlist_findraw(ptrlist_t l, void *data)
+ptrlist_findraw(ptrlist_t l, const void *data)
 {
 	if (!l || !l->head)
 		return -1;
@@ -217,7 +217,7 @@ ptrlist_findfn(ptrlist_t l, ptrlist_find_fn fndfn)
 }
 
 ssize_t
-ptrlist_findeqfn(ptrlist_t l, ptrlist_eq_fn eqfn, void *needle)
+ptrlist_findeqfn(ptrlist_t l, ptrlist_eq_fn eqfn, const void *needle)
 {
 	if (!l || !l->head)
 		return -1;
@@ -257,7 +257,7 @@ ptrlist_dump(ptrlist_t l)
 	#undef M
 }
 
-void*
+const void*
 ptrlist_first(ptrlist_t l)
 {
 	if (!l || !l->head)
@@ -267,7 +267,7 @@ ptrlist_first(ptrlist_t l)
 	return l->iter->data;
 }
 
-void*
+const void*
 ptrlist_next(ptrlist_t l)
 {
 	if (!l || !l->iter || !l->iter->next)
