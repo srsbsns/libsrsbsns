@@ -152,19 +152,28 @@ hmap_count(hmap_t h)
 }
 
 void
-hmap_dump(hmap_t h)
+hmap_dump(hmap_t h, hmap_op_fn keyop, hmap_op_fn valop)
 {
 	#define M(X, A...) fprintf(stderr, X, ##A)
-	M("===hashmap dump (count: %zu)===\n", count);
+	M("===hashmap dump (count: %zu)===\n", h->count);
 	if (!h)
 		M("nullpointer...\n");
 
 	for (size_t i = 0; i < h->bucketsz; i++) {
 		if (h->keybucket[i] && ptrlist_count(h->keybucket[i])) {
-			fprintf(stderr, "[%zu] keys: ", i);
-			ptrlist_dump(h->keybucket[i]);
-			fprintf(stderr, "[%zu] vals: ", i);
-			ptrlist_dump(h->valbucket[i]);
+			fprintf(stderr, "[%zu]: ", i);
+			ptrlist_t kl = h->keybucket[i];
+			ptrlist_t vl = h->valbucket[i];
+			const void *key = ptrlist_first(kl);
+			const void *val = ptrlist_first(vl);
+			while (key) {
+				keyop(key);
+				fprintf(stderr, " --> ");
+				valop(val);
+				key = ptrlist_next(kl);
+				val = ptrlist_next(vl);
+			}
+			fprintf(stderr, "\n");
 		}
 	}
 	M("===end of hashmap dump===\n");

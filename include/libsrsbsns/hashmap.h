@@ -9,6 +9,7 @@
 #include <stdbool.h>
 
 typedef size_t (*hmap_hash_fn)(const void *elem);
+typedef void (*hmap_op_fn)(const void *elem);
 typedef bool (*hmap_eq_fn)(const void *elem1, const void *elem2);
 typedef struct hmap *hmap_t;
 
@@ -19,7 +20,7 @@ const void* hmap_get(hmap_t h, const void *key);
 bool hmap_del(hmap_t h, const void *key);
 size_t hmap_count(hmap_t h);
 
-void hmap_dump(hmap_t h);
+void hmap_dump(hmap_t h, hmap_op_fn keyop, hmap_op_fn valop);
 void hmap_dumpstat(hmap_t h);
 
 #endif /* LIBSRSBSNS_HASHMAP_H */
