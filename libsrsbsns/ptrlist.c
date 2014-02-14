@@ -217,7 +217,7 @@ ptrlist_findfn(ptrlist_t l, ptrlist_find_fn fndfn)
 }
 
 ssize_t
-ptrlist_findeqfn(ptrlist_t, ptrlist_find_fn eqfn, void *needle)
+ptrlist_findeqfn(ptrlist_t l, ptrlist_eq_fn eqfn, void *needle)
 {
 	if (!l || !l->head)
 		return -1;
