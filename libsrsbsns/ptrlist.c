@@ -110,6 +110,29 @@ ptrlist_insert(ptrlist_t l, size_t i, void *data)
 }
 
 bool
+ptrlist_replace(ptrlist_t l, size_t i, void *data)
+{
+	if (!l || !l->head)
+		return false;
+
+	struct pl_node *n = l->head;
+	struct pl_node *prev = NULL;
+
+	while (n->next && i > 0) {
+		i--;
+		prev = n;
+		n = n->next;
+	}
+
+	if (i > 0)
+		return false;
+	
+	n->data = data;
+	
+	return true;
+}
+
+bool
 ptrlist_remove(ptrlist_t l, size_t i)
 {
 	if (!l || !l->head)
@@ -135,6 +158,25 @@ ptrlist_remove(ptrlist_t l, size_t i)
 	free(n);
 	
 	return true;
+}
+
+void*
+ptrlist_get(ptrlist_t l, size_t i)
+{
+	if (!l || !l->head)
+		return false;
+
+	struct pl_node *n = l->head;
+
+	while (n->next && i > 0) {
+		i--;
+		n = n->next;
+	}
+
+	if (i > 0)
+		return false;
+
+	return n->data;
 }
 
 
@@ -172,6 +214,25 @@ ptrlist_findfn(ptrlist_t l, ptrlist_find_fn fndfn)
 	}
 
 	return -1;
+}
+
+ssize_t
+ptrlist_findeqfn(ptrlist_t, ptrlist_find_fn eqfn, void *needle)
+{
+	if (!l || !l->head)
+		return -1;
+
+	ssize_t c = 0;
+	struct pl_node *n = l->head;
+	while (n) {
+		if (eqfn(n->data, needle))
+			return c;
+		c++;
+		n = n->next;
+	}
+
+	return -1;
+
 }
 
 
