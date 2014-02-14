@@ -6,6 +6,12 @@
 # include <config.h>
 #endif
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+
 #include <libsrsbsns/ptrlist.h>
 #include <libsrsbsns/hashmap.h>
 
@@ -43,7 +49,7 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
 		return NULL;
 	}
 
-	for (size_t i = 0; i < h->bucketsz; i++;) {
+	for (size_t i = 0; i < h->bucketsz; i++) {
 		h->valbucket[i] = NULL;
 		h->keybucket[i] = NULL;
 	}
@@ -60,7 +66,7 @@ hmap_dispose(hmap_t h)
 	if (!h)
 		return;
 
-	for (size_t i = 0; i < h->bucketsz; i++;)
+	for (size_t i = 0; i < h->bucketsz; i++) {
 		if (h->keybucket[i]) {
 			ptrlist_dispose(h->keybucket[i]);
 			h->keybucket[i] = NULL;
@@ -69,6 +75,7 @@ hmap_dispose(hmap_t h)
 			ptrlist_dispose(h->valbucket[i]);
 			h->valbucket[i] = NULL;
 		}
+	}
 	
 	free(h->keybucket);
 	free(h->valbucket);
@@ -102,7 +109,7 @@ void*
 hmap_get(hmap_t h, void *key)
 {
 	if (!h)
-		return;
+		return NULL;
 
 	size_t ind = h->hfn(key) % h->bucketsz;
 	
@@ -149,9 +156,9 @@ hmap_dump(hmap_t h)
 
 	for (size_t i = 0; i < h->bucketsz; i++) {
 		if (h->keybucket[i] && ptrlist_count(h->keybucket[i])) {
-			fprintf(stderr, "[%zu] keys: ");
+			fprintf(stderr, "[%zu] keys: ", i);
 			ptrlist_dump(h->keybucket[i]);
-			fprintf(stderr, "[%zu] vals: ");
+			fprintf(stderr, "[%zu] vals: ", i);
 			ptrlist_dump(h->valbucket[i]);
 		}
 	}
