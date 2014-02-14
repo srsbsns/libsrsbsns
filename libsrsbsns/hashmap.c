@@ -10,11 +10,17 @@
 #include <libsrsbsns/hashmap.h>
 
 struct hmap {
-	ptrlist_t *bucket;
+	ptrlist_t *keybucket;
+	ptrlist_t *valbucket;
 	size_t bucketsz;
 
 	hmap_hash_fn hfn;
 	hmap_eq_fn efn;
+};
+
+struct hmap_kv {
+	void *key;
+	void *value;
 };
 
 hmap_t
@@ -25,14 +31,22 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
 		return NULL;
 
 	h->bucketsz = bucketsz;
-	h->bucket = malloc(h->bucketsz * sizeof *h->bucket);
-	if (!h->bucket) {
+	h->keybucket = malloc(h->bucketsz * sizeof *h->keybucket);
+	if (!h->keybucket) {
+		free(h);
+		return NULL;
+	}
+	h->valbucket = malloc(h->bucketsz * sizeof *h->valbucket);
+	if (!h->valbucket) {
+		free(h->keybucket);
 		free(h);
 		return NULL;
 	}
 
-	for (size_t i = 0; i < h->bucketsz; i++;)
-		h->bucket[i] = NULL;
+	for (size_t i = 0; i < h->bucketsz; i++;) {
+		h->valbucket[i] = NULL;
+		h->keybucket[i] = NULL;
+	}
 
 	h->hfn = hfn;
 	h->efn = efn;
@@ -47,11 +61,80 @@ hmap_dispose(hmap_t h)
 		return;
 
 	for (size_t i = 0; i < h->bucketsz; i++;)
-		if (h->bucket[i]) {
-			ptrlist_dispose(h->bucket[i]);
-			h->bucket[i] = NULL;
+		if (h->keybucket[i]) {
+			ptrlist_dispose(h->keybucket[i]);
+			h->keybucket[i] = NULL;
+		}
+		if (h->valbucket[i]) {
+			ptrlist_dispose(h->valbucket[i]);
+			h->valbucket[i] = NULL;
 		}
 	
-	free(h->bucket);
+	free(h->keybucket);
+	free(h->valbucket);
 	free(h);
+}
+
+void
+hmap_put(hmap_t h, void *key, void *elem)
+{
+	if (!h)
+		return;
+
+	size_t ind = h->hfn(key) % h->bucketsz;
+	
+	ptrlist_t kl = h->keybucket[ind];
+	ptrlist_t vl = h->valbucket[ind];
+	if (!kl) {
+		kl = h->keybucket[ind] = ptrlist_init();
+		vl = h->valbucket[ind] = ptrlist_init();
+	}
+
+	ssize_t i = ptrlist_findeqfn(kl, h->efn, key);
+	if (i == -1) {
+		ptrlist_insert(kl, 0, key);
+		ptrlist_insert(vl, 0, elem);
+	} else
+		ptrlist_replace(vl, i, elem);
+}
+
+void*
+hmap_get(hmap_t h, void *key)
+{
+	if (!h)
+		return;
+
+	size_t ind = h->hfn(key) % h->bucketsz;
+	
+	ptrlist_t kl = h->keybucket[ind];
+	if (!kl)
+		return NULL;
+	ptrlist_t vl = h->valbucket[ind];
+
+	ssize_t i = ptrlist_findeqfn(kl, h->efn, key);
+	
+	return i == -1 ? NULL : ptrlist_get(vl, i);
+}
+
+bool
+hmap_del(hmap_t h, void *key)
+{
+	if (!h)
+		return false;
+
+	size_t ind = h->hfn(key) % h->bucketsz;
+	
+	ptrlist_t kl = h->keybucket[ind];
+	if (!kl)
+		return false;
+	ptrlist_t vl = h->valbucket[ind];
+
+	ssize_t i = ptrlist_findeqfn(kl, h->efn, key);
+	
+	if (i == -1)
+		return false;
+
+	ptrlist_remove(kl, i);
+	ptrlist_remove(vl, i);
+	return true;
 }
