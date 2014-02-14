@@ -107,6 +107,8 @@ ptrlist_insert(ptrlist_t l, size_t i, const void *data)
 		else
 			l->head = newnode;
 	}
+
+	return true;
 }
 
 bool

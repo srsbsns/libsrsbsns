@@ -24,11 +24,6 @@ struct hmap {
 	hmap_eq_fn efn;
 };
 
-struct hmap_kv {
-	void *key;
-	void *value;
-};
-
 hmap_t
 hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
 {
