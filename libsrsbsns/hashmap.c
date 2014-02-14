@@ -160,3 +160,25 @@ hmap_dump(hmap_t h)
 	M("===end of hashmap dump===\n");
 	#undef M
 }
+
+void
+hmap_dumpstat(hmap_t h)
+{
+	size_t used = 0;
+	size_t usedlen = 0;
+	size_t empty = 0;
+	for (size_t i = 0; i < h->bucketsz; i++) {
+		if (h->keybucket[i]) {
+			size_t c = ptrlist_count(h->keybucket[i]);
+			if (c > 0) {
+				used++;
+				usedlen += c;
+			} else
+				empty++;
+		}
+	}
+
+	fprintf(stderr, "hashmap stat: bucksz: %zu, used: %zu (%f%%) "
+	    "avg listlen: %f\n", h->bucketsz, used,
+	    ((double)used/h->bucketsz)*100.0, ((double)usedlen/used));
+}

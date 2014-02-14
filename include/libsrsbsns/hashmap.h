@@ -19,5 +19,6 @@ const void* hmap_get(hmap_t h, const void *key);
 bool hmap_del(hmap_t h, const void *key);
 
 void hmap_dump(hmap_t h);
+void hmap_dumpstat(hmap_t h);
 
 #endif /* LIBSRSBSNS_HASHMAP_H */
