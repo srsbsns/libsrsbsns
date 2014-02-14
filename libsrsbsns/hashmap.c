@@ -138,3 +138,23 @@ hmap_del(hmap_t h, void *key)
 	ptrlist_remove(vl, i);
 	return true;
 }
+
+void
+hmap_dump(hmap_t h)
+{
+	#define M(X, A...) fprintf(stderr, X, ##A)
+	M("===hashmap dump===\n");
+	if (!h)
+		M("nullpointer...\n");
+
+	for (size_t i = 0; i < h->bucketsz; i++) {
+		if (h->keybucket[i] && ptrlist_count(h->keybucket[i])) {
+			fprintf(stderr, "[%zu] keys: ");
+			ptrlist_dump(h->keybucket[i]);
+			fprintf(stderr, "[%zu] vals: ");
+			ptrlist_dump(h->valbucket[i]);
+		}
+	}
+	M("===end of hashmap dump===\n");
+	#undef M
+}

@@ -18,4 +18,6 @@ void hmap_put(hmap_t h, void *key, void *elem);
 void* hmap_get(hmap_t h, void *key);
 bool hmap_del(hmap_t h, void *key);
 
+void hmap_dump(hmap_t h);
+
 #endif /* LIBSRSBSNS_HASHMAP_H */
