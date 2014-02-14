@@ -19,6 +19,7 @@ struct hmap {
 	ptrlist_t *keybucket;
 	ptrlist_t *valbucket;
 	size_t bucketsz;
+	size_t count;
 
 	hmap_hash_fn hfn;
 	hmap_eq_fn efn;
@@ -32,6 +33,7 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
 		return NULL;
 
 	h->bucketsz = bucketsz;
+	h->count = 0;
 	h->keybucket = malloc(h->bucketsz * sizeof *h->keybucket);
 	if (!h->keybucket) {
 		free(h);
@@ -96,6 +98,7 @@ hmap_put(hmap_t h, const void *key, const void *elem)
 	if (i == -1) {
 		ptrlist_insert(kl, 0, key);
 		ptrlist_insert(vl, 0, elem);
+		h->count++;
 	} else
 		ptrlist_replace(vl, i, elem);
 }
@@ -138,14 +141,21 @@ hmap_del(hmap_t h, const void *key)
 
 	ptrlist_remove(kl, i);
 	ptrlist_remove(vl, i);
+	h->count--;
 	return true;
+}
+
+size_t
+hmap_count(hmap_t h)
+{
+	return !h ? 0 : h->count;
 }
 
 void
 hmap_dump(hmap_t h)
 {
 	#define M(X, A...) fprintf(stderr, X, ##A)
-	M("===hashmap dump===\n");
+	M("===hashmap dump (count: %zu)===\n", count);
 	if (!h)
 		M("nullpointer...\n");
 

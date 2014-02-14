@@ -121,3 +121,9 @@ smap_del(smap_t h, const char *key)
 {
 	return hmap_del(h, key);
 }
+
+size_t smap_count(smap_t h)
+{
+	return hmap_count(h);
+}
+
