@@ -23,10 +23,11 @@ struct hmap {
 
 	hmap_hash_fn hfn;
 	hmap_eq_fn efn;
+	hmap_keydup_fn keydupfn;
 };
 
 hmap_t
-hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
+hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn, hmap_keydup_fn keydupfn)
 {
 	struct hmap *h = malloc(sizeof *h);
 	if (!h)
@@ -53,6 +54,7 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn)
 
 	h->hfn = hfn;
 	h->efn = efn;
+	h->keydupfn = keydupfn;
 
 	return h;
 }
@@ -96,7 +98,7 @@ hmap_put(hmap_t h, const void *key, void *elem)
 
 	ssize_t i = ptrlist_findeqfn(kl, h->efn, key);
 	if (i == -1) {
-		ptrlist_insert(kl, 0, key);
+		ptrlist_insert(kl, 0, h->keydupfn(key));
 		ptrlist_insert(vl, 0, elem);
 		h->count++;
 	} else
@@ -139,6 +141,7 @@ hmap_del(hmap_t h, const void *key)
 	if (i == -1)
 		return false;
 
+	free(ptrlist_get(kl, i));
 	ptrlist_remove(kl, i);
 	ptrlist_remove(vl, i);
 	h->count--;

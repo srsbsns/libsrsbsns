@@ -40,24 +40,32 @@ slist_count(slist_t l)
 void 
 slist_clear(slist_t l)
 {
-	return ptrlist_clear(l);
+	void *d = slist_first(l);
+	do {
+		free(d);
+	} while ((d = slist_next(l)));
+	ptrlist_clear(l);
 }
 
 bool
 slist_insert(slist_t l, size_t i, const char *data)
 {
-	return ptrlist_insert(l, i, data);
+	return ptrlist_insert(l, i, strdup(data));
 }
 
 bool
 slist_replace(slist_t l, size_t i, const char *data)
 {
-	return ptrlist_replace(l, i, data);
+	void *d = ptrlist_get(l, i);
+	free(d);
+	return ptrlist_replace(l, i, strdup(data));
 }
 
 bool
 slist_remove(slist_t l, size_t i)
 {
+	void *d = ptrlist_get(l, i);
+	free(d);
 	return ptrlist_remove(l, i);
 }
 

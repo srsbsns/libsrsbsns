@@ -11,6 +11,7 @@
 
 typedef struct ptrlist *ptrlist_t;
 typedef bool (*ptrlist_find_fn)(const void *e);
+typedef void (*ptrlist_op_fn)(const void *e);
 typedef bool (*ptrlist_eq_fn)(const void *e1, const void *e2);
 
 /* alloc/dispose/count/clear */

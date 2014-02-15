@@ -23,6 +23,12 @@ streq(const void *s1, const void *s2)
 	return strcmp((const char*)s1, (const char*)s2) == 0;
 }
 
+static void*
+strkeydup(const void *s)
+{
+	return strdup((const char*)s);
+}
+
 static size_t
 strhash_small(const void *s)
 {
@@ -95,7 +101,7 @@ smap_init(size_t bucketsz)
 {
 	hmap_hash_fn fn = bucketsz <= 256 ? strhash_small :
 	                  bucketsz <= 65536 ? strhash_mid : strhash_large;
-	return hmap_init(bucketsz, fn, streq);
+	return hmap_init(bucketsz, fn, streq, strkeydup);
 }
 
 void

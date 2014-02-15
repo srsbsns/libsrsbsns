@@ -10,10 +10,12 @@
 
 typedef size_t (*hmap_hash_fn)(const void *elem);
 typedef void (*hmap_op_fn)(const void *elem);
+typedef void* (*hmap_keydup_fn)(const void *key);
 typedef bool (*hmap_eq_fn)(const void *elem1, const void *elem2);
 typedef struct hmap *hmap_t;
 
-hmap_t hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn);
+hmap_t hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn,
+    hmap_keydup_fn keydupfn);
 void hmap_dispose(hmap_t h);
 void hmap_put(hmap_t h, const void *key, void *elem);
 void* hmap_get(hmap_t h, const void *key);
