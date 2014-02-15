@@ -64,30 +64,33 @@ bintree_insert(bintree_t t, void *data)
 		return false;
 
 	struct bt_node *n = t->root; 
-	bool rightleft = false;
 
 	while(n) {
-		struct bt_node *prev = n;
-
 		if(t->cmpfn(data, n->data) <= 0)
 		{
-			n = n->left;
-			rightleft = false;
+			if(n->left)
+				n = n->left;
+			else
+			{
+				n->left = malloc(sizeof *n->left);
+				n = n->left;
+				break;
+			}
 		}
-		else
+		else if(t->cmpfn(data, n->data) > 0)
 		{
-			n = n->right;
-			rightleft = true;
+			if(n->right)
+				n = n->right;
+			else
+			{
+				n->right = malloc(sizeof *n->right);
+				n = n->right;
+				break;
+			}
 		}
 	}
-	n = malloc(sizeof *n);
 	if(!n)
 		return false;
-	if(!rightleft)
-		prev->left = n;
-	else
-		prev->right = n;
-
 	n->data = data;
 	t->count++;
 	return true;
