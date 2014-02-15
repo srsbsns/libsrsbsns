@@ -34,6 +34,6 @@ ssize_t ptrlist_findeqfn(ptrlist_t l, ptrlist_eq_fn eqfn, const void *needle);
 /* iteration */
 void* ptrlist_first(ptrlist_t l);
 void* ptrlist_next(ptrlist_t l);
-void ptrlist_dump(ptrlist_t l);
+void ptrlist_dump(ptrlist_t l, ptrlist_op_fn op);
 
 #endif /* LIBSRSBSNS_PTRLIST_H */

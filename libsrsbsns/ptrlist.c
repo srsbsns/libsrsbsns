@@ -239,7 +239,7 @@ ptrlist_findeqfn(ptrlist_t l, ptrlist_eq_fn eqfn, const void *needle)
 
 
 void
-ptrlist_dump(ptrlist_t l)
+ptrlist_dump(ptrlist_t l, ptrlist_op_fn op)
 {
 	#define M(X, A...) fprintf(stderr, X, ##A)
 	if (!l)
@@ -249,7 +249,7 @@ ptrlist_dump(ptrlist_t l)
 	M("%zu elements: [", c);
 	struct pl_node *n = l->head;
 	while(n) {
-		M("%p", n->data);
+		op(n->data);
 		if (n->next)
 			M(" --> ");
 		n=n->next;
