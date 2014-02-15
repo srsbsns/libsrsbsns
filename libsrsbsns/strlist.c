@@ -28,7 +28,7 @@ slist_init(void)
 void 
 slist_dispose(slist_t l)
 {
-	return ptrlist_dispose(l);
+	ptrlist_dispose(l);
 }
 
 size_t 
@@ -76,21 +76,28 @@ slist_get(slist_t l, size_t i)
 }
 
 ssize_t
-slist_findraw(slist_t l, const char *data)
-{
-	return ptrlist_findraw(l, data);
-}
-
-ssize_t
 slist_findeq(slist_t l, const char *needle)
 {
-	return ptrlist_findeqfn(l, streq, needle);
+	size_t cnt = slist_count(l);
+	for (size_t i = 0; i < cnt; i++) {
+		const char *c = slist_get(l, i);
+		if (streq(c, needle))
+			return i;
+	}
+
+	return -1;
+}
+
+static void
+strdump(const void *s)
+{
+	fprintf(stderr, "%s", (const char*)s);
 }
 
 void
 slist_dump(slist_t l)
 {
-	return ptrlist_dump(l);
+	ptrlist_dump(l, strdump);
 }
 
 char*
