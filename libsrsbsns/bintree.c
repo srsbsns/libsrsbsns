@@ -146,7 +146,7 @@ bintree_remove(bintree_t t, void *data)
 	}
 	bintree_swapnode(tmp, n);
 	free(tmp);
-	t->count++;
+	t->count--;
 	return true;
 }
 
