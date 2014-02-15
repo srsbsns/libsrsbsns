@@ -77,7 +77,7 @@ bintree_insert(bintree_t t, void *data)
 				break;
 			}
 		}
-		else if(t->cmpfn(data, n->data) > 0)
+		else
 		{
 			if(n->right)
 				n = n->right;
