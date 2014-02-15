@@ -14,9 +14,9 @@
 #include <libsrsbsns/strlist.h>
 
 static bool
-streq(const void *s1, const void *s2)
+streq(const char *s1, const char *s2)
 {
-	return strcmp((const char*)s1, (const char*)s2) == 0;
+	return strcmp(s1, s2) == 0;
 }
 
 slist_t
@@ -61,7 +61,7 @@ slist_remove(slist_t l, size_t i)
 	return ptrlist_remove(l, i);
 }
 
-const char*
+char*
 slist_get(slist_t l, size_t i)
 {
 	return ptrlist_get(l, i);
@@ -85,13 +85,13 @@ slist_dump(slist_t l)
 	return ptrlist_dump(l);
 }
 
-const char*
+char*
 slist_first(slist_t l)
 {
 	return ptrlist_first(l);
 }
 
-const char*
+char*
 slist_next(slist_t l)
 {
 	return ptrlist_next(l);

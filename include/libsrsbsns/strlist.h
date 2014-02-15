@@ -24,15 +24,14 @@ size_t slist_count(slist_t l);
 bool slist_insert(slist_t l, size_t i, const char *data);
 bool slist_replace(slist_t l, size_t i, const char *data);
 bool slist_remove(slist_t l, size_t i);
-const char* slist_get(slist_t l, size_t i);
+char* slist_get(slist_t l, size_t i);
 
 /* linear search */
-ssize_t slist_findraw(slist_t, const char *data);
 ssize_t slist_findeq(slist_t l, const char *needle);
 
 /* iteration */
-const char* slist_first(slist_t l);
-const char* slist_next(slist_t l);
+char* slist_first(slist_t l);
+char* slist_next(slist_t l);
 void slist_dump(slist_t l);
 
 #endif /* LIBSRSBSNS_STRLIST_H */

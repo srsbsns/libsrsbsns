@@ -105,12 +105,12 @@ smap_dispose(smap_t h)
 }
 
 void
-smap_put(smap_t h, const char *key, const void *elem)
+smap_put(smap_t h, const char *key, void *elem)
 {
 	hmap_put(h, key, elem);
 }
 
-const void*
+void*
 smap_get(smap_t h, const char *key)
 {
 	return hmap_get(h, key);

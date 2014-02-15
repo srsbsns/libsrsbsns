@@ -80,7 +80,7 @@ hmap_dispose(hmap_t h)
 }
 
 void
-hmap_put(hmap_t h, const void *key, const void *elem)
+hmap_put(hmap_t h, const void *key, void *elem)
 {
 	if (!h)
 		return;
@@ -103,7 +103,7 @@ hmap_put(hmap_t h, const void *key, const void *elem)
 		ptrlist_replace(vl, i, elem);
 }
 
-const void*
+void*
 hmap_get(hmap_t h, const void *key)
 {
 	if (!h)
@@ -164,8 +164,8 @@ hmap_dump(hmap_t h, hmap_op_fn keyop, hmap_op_fn valop)
 			fprintf(stderr, "[%zu]: ", i);
 			ptrlist_t kl = h->keybucket[i];
 			ptrlist_t vl = h->valbucket[i];
-			const void *key = ptrlist_first(kl);
-			const void *val = ptrlist_first(vl);
+			void *key = ptrlist_first(kl);
+			void *val = ptrlist_first(vl);
 			while (key) {
 				keyop(key);
 				fprintf(stderr, " --> ");

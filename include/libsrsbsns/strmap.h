@@ -14,8 +14,8 @@ typedef hmap_t smap_t;
 
 smap_t smap_init(size_t bucketsz);
 void smap_dispose(smap_t h);
-void smap_put(smap_t h, const char *key, const void *elem);
-const void* smap_get(smap_t h, const char *key);
+void smap_put(smap_t h, const char *key, void *elem);
+void* smap_get(smap_t h, const char *key);
 bool smap_del(smap_t h, const char *key);
 size_t smap_count(smap_t h);
 

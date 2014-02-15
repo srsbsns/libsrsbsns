@@ -14,7 +14,7 @@
 #include <libsrsbsns/ptrlist.h>
 
 struct pl_node {
-	const void *data;
+	void *data;
 	struct pl_node *next;
 };
 
@@ -71,7 +71,7 @@ ptrlist_clear(ptrlist_t l)
 }
 
 bool
-ptrlist_insert(ptrlist_t l, size_t i, const void *data)
+ptrlist_insert(ptrlist_t l, size_t i, void *data)
 {
 	if (!l) 
 		return false;
@@ -112,7 +112,7 @@ ptrlist_insert(ptrlist_t l, size_t i, const void *data)
 }
 
 bool
-ptrlist_replace(ptrlist_t l, size_t i, const void *data)
+ptrlist_replace(ptrlist_t l, size_t i, void *data)
 {
 	if (!l || !l->head)
 		return false;
@@ -162,7 +162,7 @@ ptrlist_remove(ptrlist_t l, size_t i)
 	return true;
 }
 
-const void*
+void*
 ptrlist_get(ptrlist_t l, size_t i)
 {
 	if (!l || !l->head)
@@ -183,7 +183,7 @@ ptrlist_get(ptrlist_t l, size_t i)
 
 
 ssize_t
-ptrlist_findraw(ptrlist_t l, const void *data)
+ptrlist_findraw(ptrlist_t l, void *data)
 {
 	if (!l || !l->head)
 		return -1;
@@ -259,7 +259,7 @@ ptrlist_dump(ptrlist_t l)
 	#undef M
 }
 
-const void*
+void*
 ptrlist_first(ptrlist_t l)
 {
 	if (!l || !l->head)
@@ -269,7 +269,7 @@ ptrlist_first(ptrlist_t l)
 	return l->iter->data;
 }
 
-const void*
+void*
 ptrlist_next(ptrlist_t l)
 {
 	if (!l || !l->iter || !l->iter->next)

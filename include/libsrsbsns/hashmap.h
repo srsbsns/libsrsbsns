@@ -15,8 +15,8 @@ typedef struct hmap *hmap_t;
 
 hmap_t hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn);
 void hmap_dispose(hmap_t h);
-void hmap_put(hmap_t h, const void *key, const void *elem);
-const void* hmap_get(hmap_t h, const void *key);
+void hmap_put(hmap_t h, const void *key, void *elem);
+void* hmap_get(hmap_t h, const void *key);
 bool hmap_del(hmap_t h, const void *key);
 size_t hmap_count(hmap_t h);
 
