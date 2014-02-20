@@ -2,16 +2,23 @@
 #include <libsrsbsns/bintree.h>
 
 struct bt_node {
-	const void *data;
+	void *data;
 	struct bt_node *left;
 	struct bt_node *right;
-}
+};
 
 struct bintree {
-	int count;
+	size_t count;
 	bintree_cmp_fn cmpfn;
 	struct bt_node *root;
 };
+
+static void bintree_rclear(struct bt_node *n);
+static struct bt_node* bintree_nodefind(bintree_t t, void *data);
+static void bintree_swapnode(struct bt_node *a, struct bt_node *b);
+static void bintree_dumptoarray(struct bt_node *n, void **dest, size_t *i);
+static void bintree_rbalance(bintree_t t, void **src, size_t start, size_t end);
+
 
 bintree_t
 bintree_init(bintree_cmp_fn cmpfn)
@@ -29,7 +36,7 @@ bintree_dispose(bintree_t t)
 	free(t);
 }
 
-int
+size_t
 bintree_count(bintree_t t)
 {
 	if(!t || !t->root)
@@ -43,12 +50,12 @@ bintree_clear(bintree_t t)
 	if(!t)
 		return;
 
-	bintree_rclear(&t->root);
+	bintree_rclear(t->root);
 	t->count = 0;
 }
 
 static void
-bintree_rclear(bt_node *n)
+bintree_rclear(struct bt_node *n)
 {
 	if(n->left)
 		bintree_rclear(n->left);
@@ -96,7 +103,7 @@ bintree_insert(bintree_t t, void *data)
 	return true;
 }
 
-static bt_node*
+static struct bt_node*
 bintree_nodefind(bintree_t t, void *data)
 {
 	if(!t)
@@ -106,8 +113,6 @@ bintree_nodefind(bintree_t t, void *data)
 
 	while(n)
 	{
-		if(!n)
-			return NULL;
 		if(t->cmpfn(data, n->data) < 0)
 			n = n->left;
 		else if(t->cmpfn(data, n->data) > 0)
@@ -115,18 +120,22 @@ bintree_nodefind(bintree_t t, void *data)
 		else
 			return n;
 	}
+
+	return NULL;
 }
 
 void*
 bintree_find(bintree_t t, void* data)
 {
-	return bintree_nodefind(t, data)->data;
+	struct bt_node *res = bintree_nodefind(t, data);
+	return res ? res->data : NULL;
 }
 
 bool
 bintree_remove(bintree_t t, void *data)
 {
 	struct bt_node *n = bintree_nodefind(t, data);
+	struct bt_node *tmp;
 	if(!n->right && !n->left)
 	{
 		free(n);
@@ -134,13 +143,13 @@ bintree_remove(bintree_t t, void *data)
 	}
 	else if(n->right)
 	{
-		struct bt_node *tmp = n->right;
+		tmp = n->right;
 		while(tmp->left)
 			tmp = tmp->left;
 	}
 	else
 	{
-		struct bt_node *tmp = n->left;
+		tmp = n->left;
 		while(tmp->right)
 			tmp = tmp->right;
 	}
@@ -150,15 +159,16 @@ bintree_remove(bintree_t t, void *data)
 	return true;
 }
 
-void
-bintree_swapnode(bt_node *a, bt_node *b)
+static void
+bintree_swapnode(struct bt_node *a, struct bt_node *b)
 {
 	void *data = a->data;
 	a->data = b->data;
 	b->data = data;
 }
 
-bool bintree_dumptoarray(bt_node *n, void **dest, int *i)
+static void
+bintree_dumptoarray(struct bt_node *n, void **dest, size_t *i)
 {
 	if(!n)
 		return
@@ -169,7 +179,7 @@ bool bintree_dumptoarray(bt_node *n, void **dest, int *i)
 }
 
 static void
-bintree_rbalance(bintree_t t, void **src int start, int end)
+bintree_rbalance(bintree_t t, void **src, size_t start, size_t end)
 {
 	size_t mid = (start+end)/2;
 	bintree_insert(t, src[mid]);
@@ -184,8 +194,7 @@ bintree_balance(bintree_t t)
 	void **arr = malloc(n * sizeof *arr);
 
 	size_t i = 0;
-	if (!bintree_dumptoarray(t->root, arr, &i))
-		return;
+	bintree_dumptoarray(t->root, arr, &i);
 	bintree_clear(t);
 	bintree_rbalance(t, arr, 0, i-1);
 }
