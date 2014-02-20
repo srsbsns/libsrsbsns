@@ -44,7 +44,7 @@ bintree_clear(bintree_t t)
 		return;
 
 	bintree_rclear(&t->root);
-
+	t->count = 0;
 }
 
 static void
@@ -158,7 +158,7 @@ bintree_swapnode(bt_node *a, bt_node *b)
 	b->data = data;
 }
 
-void bintree_dumptoarray(bt_node *n, void **dest, int *i)
+bool bintree_dumptoarray(bt_node *n, void **dest, int *i)
 {
 	if(!n)
 		return
@@ -166,4 +166,26 @@ void bintree_dumptoarray(bt_node *n, void **dest, int *i)
 	bintree_dumptoarray(n->left, dest, i);
 	dest[(*i)++] = n->data;
 	bintree_dumptoarray(n->right, dest, i);
+}
+
+static void
+bintree_rbalance(bintree_t t, void **src int start, int end)
+{
+	size_t mid = (start+end)/2;
+	bintree_insert(t, src[mid]);
+	bintree_rbalance(t, src, start, mid-1);
+	bintree_rbalance(t, src, mid+1, end);
+}
+
+void 
+bintree_balance(bintree_t t)
+{
+	size_t n = t->count;
+	void **arr = malloc(n * sizeof *arr);
+
+	size_t i = 0;
+	if (!bintree_dumptoarray(t->root, arr, &i))
+		return;
+	bintree_clear(t);
+	bintree_rbalance(t, arr, 0, i-1);
 }
