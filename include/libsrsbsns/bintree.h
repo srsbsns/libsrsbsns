@@ -16,5 +16,6 @@ static bt_node* bintree_nodefind(bintree_t t, void *data);
 void* bintree_find(bintree_t t, void *data);
 bool bintree_remove(bintree_t t, void *data);
 void bintree_swapnode(bt_node *a, bt_node *b);
+void bintree_dumptoarray(bt_node *n, void **dest, int i);
 
 #endif /* LIBSRSBSNS_BINTREE_H */

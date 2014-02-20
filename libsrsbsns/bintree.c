@@ -157,3 +157,13 @@ bintree_swapnode(bt_node *a, bt_node *b)
 	a->data = b->data;
 	b->data = data;
 }
+
+void bintree_dumptoarray(bt_node *n, void **dest, int *i)
+{
+	if(!n)
+		return
+
+	bintree_dumptoarray(n->left, dest, i);
+	dest[(*i)++] = n->data;
+	bintree_dumptoarray(n->right, dest, i);
+}
