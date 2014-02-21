@@ -69,10 +69,11 @@ bintree_clear(bintree_t t)
 static void
 bintree_rclear(struct bt_node *n)
 {
-	if(n->left)
-		bintree_rclear(n->left);
-	if(n->right)
-		bintree_rclear(n->right);
+	if (!n)
+		return;
+
+	bintree_rclear(n->left);
+	bintree_rclear(n->right);
 	free(n);
 }
 
