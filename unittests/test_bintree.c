@@ -63,43 +63,66 @@ test_find(void)
 	return NULL;
 }
 
-const char* /*UNITTEST*/
-test_iter(void)
+static const char*
+check_preorder(char *inp, char *chk, size_t len)
 {
 	bintree_t t = bintree_init(chcmp);
 
-	char da[] = "FBADCEGIH";
-	char res[sizeof da];
-
-	for (size_t i = 0; i < strlen(da); i++)
-		if (!bintree_insert(t, &da[i]))
+	for (size_t i = 0; i < len; i++)
+		if (!bintree_insert(t, &inp[i]))
 			return "insertion failed";
 
 
+	char *res = malloc(len+1);
+	res[len] = '\0';
+
 	char *ch;
-	for (size_t i = 0; i < strlen(da); i++) {
+	for (size_t i = 0; i < len; i++) {
 		if (!i) {
-			if (!(ch = bintree_first(t, TRAV_PREORDER)))
+			if (!(ch = bintree_first(t, TRAV_PREORDER))) {
+				free(res);
 				return "bintree_first failed";
+			}
 		} else {
-			if (!(ch = bintree_next(t)))
+			if (!(ch = bintree_next(t))) {
 				return "bintree_next failed";
+				free(res);
+			}
 		}
 
 		res[i] = *ch;
 	}
-
-	
-	for (size_t i = 0; i < strlen(da); i++) {
-		if (res[i] != "FBADCEGIH"[i])
-			return "traversal failed";
-	}
-
 	if (bintree_next(t))
 		return "bintree_next did not fail when it should";
-		
-	bintree_dispose(t);
 
+
+	if (strcmp(res, chk) != 0) {
+		printf("got: '%s', want: '%s'\n", res, chk);
+		free(res);
+		return "traversal failure";
+	}
+
+	free(res);
+	bintree_dispose(t);
+	return NULL;
+
+}
+
+const char* /*UNITTEST*/
+test_iter(void)
+{
+	char data[1024];
+	char chk[1024];
+
+	const char *s;
+	const char *c;
+	const char *e;
+	s = "FBADCEGIH"; c = "FBADCEGIH"; strcpy(data, c); strcpy(chk, s); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "A"; c = "A"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "AB"; c = "AB"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "BA"; c = "BA"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "BAC"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "BCA"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
 	return NULL;
 
 }
