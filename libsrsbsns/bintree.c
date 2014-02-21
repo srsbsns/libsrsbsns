@@ -5,6 +5,7 @@ struct bt_node {
 	void *data;
 	struct bt_node *left;
 	struct bt_node *right;
+	struct bt_node *parent;
 };
 
 struct bintree {
@@ -80,6 +81,7 @@ bintree_insert(bintree_t t, void *data)
 			else
 			{
 				n->left = malloc(sizeof *n->left);
+				n->left->parent = n;
 				n = n->left;
 				break;
 			}
@@ -91,6 +93,7 @@ bintree_insert(bintree_t t, void *data)
 			else
 			{
 				n->right = malloc(sizeof *n->right);
+				n->right->parent = n;
 				n = n->right;
 				break;
 			}
