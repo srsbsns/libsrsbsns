@@ -60,7 +60,7 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn, hmap_keydup_fn keyd
 }
 
 void
-hmap_dispose(hmap_t h)
+hmap_clear(hmap_t h)
 {
 	if (!h)
 		return;
@@ -75,7 +75,18 @@ hmap_dispose(hmap_t h)
 			h->valbucket[i] = NULL;
 		}
 	}
-	
+
+	h->count = 0;
+}
+
+void
+hmap_dispose(hmap_t h)
+{
+	if (!h)
+		return;
+
+	hmap_clear(h);
+
 	free(h->keybucket);
 	free(h->valbucket);
 	free(h);
