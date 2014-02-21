@@ -23,6 +23,9 @@ void* hmap_get(hmap_t h, const void *key);
 bool hmap_del(hmap_t h, const void *key);
 size_t hmap_count(hmap_t h);
 
+bool hmap_first(hmap_t h, void **key, void **val);
+bool hmap_next(hmap_t h, void **key, void **val);
+
 void hmap_dump(hmap_t h, hmap_op_fn keyop, hmap_op_fn valop);
 void hmap_dumpstat(hmap_t h);
 

@@ -74,3 +74,66 @@ test_insert(void)
 
 	return NULL;
 }
+
+const char* /*UNITTEST*/
+test_iter(void)
+{
+	int a, b, c, d, e, f, g, h;
+	int *k = &a, *l = &b, *m = &c, *n = &d;
+	int *v = &e, *w = &f, *x = &g, *y = &h;
+
+	hmap_t mp = hmap_init(229, hfn, efn, dfn);
+	hmap_put(mp, k, v);
+	hmap_put(mp, l, w);
+	hmap_put(mp, m, x);
+	hmap_put(mp, n, y);
+
+	if (hmap_count(mp) != 4)
+		return "count not 4 after putting 4 elements";
+
+	void *key, *val;
+
+	if (!hmap_first(mp, &key, &val))
+		return "hmap_first() failed";
+	
+	bool seena = false, seenb = false, seenc = false, seend = false;
+	if (key == &a || val == &e)
+		seena = true;
+	if (key == &b || val == &f)
+		seenb = true;
+	if (key == &c || val == &g)
+		seenc = true;
+	if (key == &d || val == &h)
+		seend = true;
+
+	for(int i = 0; i < 3; i++) {
+		if (!hmap_next(mp, &key, &val))
+			return "hmap_next failed";
+
+		if (key == &a || val == &e)
+			seena = true;
+		if (key == &b || val == &f)
+			seenb = true;
+		if (key == &c || val == &g)
+			seenc = true;
+		if (key == &d || val == &h)
+			seend = true;
+	}
+
+	if (!seena || !seenb || !seenc || !seend)
+		return "iterator fail";
+
+	if (!hmap_next(mp, &key, &val))
+		return "hmap_next failed";
+
+	if (key || val)
+		return "extra elements after iterator ended";
+
+	if (hmap_next(mp, &key, &val))
+		return "iterator still valid";
+
+	hmap_dispose(mp);
+
+	return NULL;
+
+}

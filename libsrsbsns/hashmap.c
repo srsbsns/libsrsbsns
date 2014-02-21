@@ -21,6 +21,9 @@ struct hmap {
 	size_t bucketsz;
 	size_t count;
 
+	size_t buckiter;
+	size_t listiter;
+
 	hmap_hash_fn hfn;
 	hmap_eq_fn efn;
 	hmap_keydup_fn keydupfn;
@@ -33,6 +36,7 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn, hmap_keydup_fn keyd
 	if (!h)
 		return NULL;
 
+	h->buckiter = -1;
 	h->bucketsz = bucketsz;
 	h->count = 0;
 	h->keybucket = malloc(h->bucketsz * sizeof *h->keybucket);
@@ -163,6 +167,83 @@ size_t
 hmap_count(hmap_t h)
 {
 	return !h ? 0 : h->count;
+}
+
+bool
+hmap_first(hmap_t h, void **key, void **val)
+{
+	if (!h)
+		return false;
+	
+	h->buckiter = 0;
+
+	while (h->buckiter < h->bucketsz && (!h->keybucket[h->buckiter]
+	    || ptrlist_count(h->keybucket[h->buckiter]) == 0))
+		h->buckiter++;
+	
+	if (h->buckiter == h->bucketsz) {
+		if (key)
+			*key = NULL;
+		if (val)
+			*val = NULL;
+
+		h->buckiter = -1;
+		return true;
+	}
+	
+	void *k = ptrlist_get(h->keybucket[h->buckiter], 0);
+	void *v = ptrlist_get(h->valbucket[h->buckiter], 0);
+
+	h->listiter = 1;
+
+	if (key)
+		*key = k;
+	if (val)
+		*val = v;
+	
+	return true;
+}
+
+bool
+hmap_next(hmap_t h, void **key, void **val)
+{
+	if (!h || h->buckiter == -1)
+		return false;
+	
+	void *k = ptrlist_get(h->keybucket[h->buckiter], h->listiter);
+
+	if (!k) {
+		h->buckiter++;
+		h->listiter = 0;
+
+		while (h->buckiter < h->bucketsz && (!h->keybucket[h->buckiter]
+		    || ptrlist_count(h->keybucket[h->buckiter]) == 0))
+			h->buckiter++;
+
+		if (h->buckiter == h->bucketsz) {
+			if (key)
+				*key = NULL;
+			if (val)
+				*val = NULL;
+
+			h->buckiter = -1;
+			return true;
+		}
+
+		k = ptrlist_get(h->keybucket[h->buckiter], h->listiter);
+	}
+
+	void *v = ptrlist_get(h->valbucket[h->buckiter], h->listiter);
+
+	h->listiter++;
+
+	if (key)
+		*key = k;
+	if (val)
+		*val = v;
+	
+	return true;
+	
 }
 
 void
