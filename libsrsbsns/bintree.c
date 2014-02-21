@@ -88,7 +88,7 @@ bintree_insert(bintree_t t, void *data)
 	if (!n) { //special case: tree is empty
 		n = malloc(sizeof *n);
 		n->parent = NULL;
-		n->data = datal
+		n->data = data;
 		n->left = n->right = NULL;
 		return true;
 	}
