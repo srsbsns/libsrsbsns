@@ -105,6 +105,12 @@ smap_init(size_t bucketsz)
 }
 
 void
+smap_clear(smap_t h)
+{
+	hmap_clear(h);
+}
+
+void
 smap_dispose(smap_t h)
 {
 	hmap_dispose(h);
