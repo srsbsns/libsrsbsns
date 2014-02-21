@@ -71,7 +71,7 @@ ptrlist_clear(ptrlist_t l)
 }
 
 bool
-ptrlist_insert(ptrlist_t l, size_t i, void *data)
+ptrlist_insert(ptrlist_t l, ssize_t i, void *data)
 {
 	if (!l) 
 		return false;
@@ -91,13 +91,13 @@ ptrlist_insert(ptrlist_t l, size_t i, void *data)
 		return true;
 	}
 
-	while (n->next && i > 0) {
+	while (n->next && i) {
 		i--;
 		prev = n;
 		n = n->next;
 	}
 	
-	if (i > 0) { 
+	if (i) {
 		n->next = newnode;
 		newnode->next = NULL;
 	} else {

@@ -21,7 +21,7 @@ void ptrlist_clear(ptrlist_t l);
 size_t ptrlist_count(ptrlist_t l);
 
 /* insert/remove/get by index */
-bool ptrlist_insert(ptrlist_t l, size_t i, void *data);
+bool ptrlist_insert(ptrlist_t l, ssize_t i, void *data);
 bool ptrlist_replace(ptrlist_t l, size_t i, void *data);
 bool ptrlist_remove(ptrlist_t l, size_t i);
 void* ptrlist_get(ptrlist_t l, size_t i);
