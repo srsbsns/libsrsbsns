@@ -13,3 +13,5 @@ rm -f include/Makefile.in
 rm -f include/libsrsbsns/Makefile.in
 rm -f libsrsbsns/Makefile.in
 rm -f src/Makefile.in
+rm -f unittests/Makefile.in
+rm -f unittests/run_*.c

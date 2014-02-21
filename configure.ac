@@ -35,6 +35,7 @@ AC_CONFIG_FILES([Makefile
 		 include/Makefile
 		 include/libsrsbsns/Makefile
 		 libsrsbsns/Makefile
+		 unittests/Makefile
                  src/Makefile])
 AC_OUTPUT
 echo \
@@ -47,3 +48,4 @@ echo \
  Libraries: '${LIBS}'
 
 --------------------------------------------------"
+scripts/gentests.sh
