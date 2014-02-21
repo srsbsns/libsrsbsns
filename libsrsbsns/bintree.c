@@ -12,6 +12,9 @@ struct bintree {
 	size_t count;
 	bintree_cmp_fn cmpfn;
 	struct bt_node *root;
+
+	struct bt_node *iter;
+	int travtype;
 };
 
 static void bintree_rclear(struct bt_node *n);
@@ -19,6 +22,13 @@ static struct bt_node* bintree_nodefind(bintree_t t, void *data);
 static void bintree_swapnode(struct bt_node *a, struct bt_node *b);
 static void bintree_dumptoarray(struct bt_node *n, void **dest, size_t *i);
 static void bintree_rbalance(bintree_t t, void **src, size_t start, size_t end);
+static void* first_preorder(bintree_t t);
+static void* first_inorder(bintree_t t);
+static void* first_postorder(bintree_t t);
+static void* next_preorder(bintree_t t);
+static void* next_inorder(bintree_t t);
+static void* next_postorder(bintree_t t);
+
 
 
 bintree_t
@@ -27,6 +37,7 @@ bintree_init(bintree_cmp_fn cmpfn)
 	struct bintree *t = malloc(sizeof *t);
 	t->root = NULL;
 	t->cmpfn = cmpfn;
+	t->iter = NULL;
 	return t;
 }
 
@@ -201,3 +212,86 @@ bintree_balance(bintree_t t)
 	bintree_clear(t);
 	bintree_rbalance(t, arr, 0, i-1);
 }
+
+void*
+bintree_first(bintree_t t, int travtype)
+{
+	t->travtype = travtype;
+	t->iter = NULL;
+	switch (t->travtype) {
+	case TRAV_PREORDER:
+		return first_preorder(t);
+	case TRAV_INORDER:
+		return first_preorder(t);
+	case TRAV_POSTORDER:
+		return first_preorder(t);
+	default:
+		return NULL;
+	}
+	
+}
+
+void*
+bintree_next(bintree_t t)
+{
+	switch (t->travtype) {
+	case TRAV_PREORDER:
+		return next_preorder(t);
+	case TRAV_INORDER:
+		return next_inorder(t);
+	case TRAV_POSTORDER:
+		return next_postorder(t);
+	default:
+		return NULL;
+	}
+}
+
+static void*
+first_preorder(bintree_t t)
+{
+	t->iter = t->root;
+	return t->iter->data;
+}
+
+static void*
+first_inorder(bintree_t t)
+{
+	return NULL;
+}
+
+static void*
+first_postorder(bintree_t t)
+{
+	return NULL;
+}
+
+static void*
+next_preorder(bintree_t t)
+{
+	if (t->iter->left)
+		t->iter = t->iter->left;
+	else {
+		while (t->iter->parent && !t->iter->parent->right)
+			t->iter = t->iter->parent;
+
+		if (!t->iter->parent)
+			return t->iter = NULL;
+		
+		t->iter = t->iter->right;
+	}
+	
+	return t->iter->data;
+}
+
+static void*
+next_inorder(bintree_t t)
+{
+	return NULL;
+}
+
+static void*
+next_postorder(bintree_t t)
+{
+	return NULL;
+}
+

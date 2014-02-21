@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+#define TRAV_PREORDER 0
+#define TRAV_INORDER 1
+#define TRAV_POSTORDER 2
+
 typedef struct bintree *bintree_t;
 typedef int (*bintree_cmp_fn)(void *elem1, void *elem2);
 
@@ -14,5 +18,8 @@ bool bintree_insert(bintree_t t, void *data);
 void* bintree_find(bintree_t t, void *data);
 bool bintree_remove(bintree_t t, void *data);
 void bintree_balance(bintree_t t);
+
+void* bintree_first(bintree_t t, int travtype);
+void* bintree_next(bintree_t t);
 
 #endif /* LIBSRSBSNS_BINTREE_H */
