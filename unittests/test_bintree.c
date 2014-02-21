@@ -62,3 +62,44 @@ test_find(void)
 
 	return NULL;
 }
+
+const char* /*UNITTEST*/
+test_iter(void)
+{
+	bintree_t t = bintree_init(chcmp);
+
+	char da[] = "FBADCEGIH";
+	char res[sizeof da];
+
+	for (size_t i = 0; i < strlen(da); i++)
+		if (!bintree_insert(t, &da[i]))
+			return "insertion failed";
+
+
+	char *ch;
+	for (size_t i = 0; i < strlen(da); i++) {
+		if (!i) {
+			if (!(ch = bintree_first(t, TRAV_PREORDER)))
+				return "bintree_first failed";
+		} else {
+			if (!(ch = bintree_next(t)))
+				return "bintree_next failed";
+		}
+
+		res[i] = *ch;
+	}
+
+	
+	for (size_t i = 0; i < strlen(da); i++) {
+		if (res[i] != "FBADCEGIH"[i])
+			return "traversal failed";
+	}
+
+	if (bintree_next(t))
+		return "bintree_next did not fail when it should";
+		
+	bintree_dispose(t);
+
+	return NULL;
+
+}
