@@ -281,14 +281,35 @@ next_preorder(bintree_t t)
 {
 	if (t->iter->left)
 		t->iter = t->iter->left;
-	else {
-		while (t->iter->parent && !t->iter->parent->right)
-			t->iter = t->iter->parent;
-
-		if (!t->iter->parent)
-			return t->iter = NULL;
-		
+	else if (t->iter->right)
 		t->iter = t->iter->right;
+	else { /* we're a leaf node */
+		for (;;) {
+			/* if we're a right child, go up until we're not */
+			while (t->iter->parent
+			    && t->iter->parent->right == t->iter)
+				t->iter = t->iter->parent;
+
+			if (!t->iter->parent) //we're at root; done.
+				return t->iter = NULL;
+
+			/* now we must be a left child.
+			 * if parent has a right child, go up one level*/
+			if (t->iter->parent && !t->iter->parent->right)
+				t->iter = t->iter->parent;
+
+			if (!t->iter->parent) //we're at root; done.
+				return t->iter = NULL;
+			
+			/* we're a right child again, repeat procedure */
+			if (t->iter->parent->right == t->iter)
+				continue;
+
+			/* finally, we're a left child with a parent
+			 * having a right child -- this is our node. */
+			t->iter = t->iter->parent->right;
+			break;
+		}
 	}
 	
 	return t->iter->data;
