@@ -12,10 +12,19 @@ intcmp(void *x, void *y)
 	return *(int*)x - *(int*)y;
 }
 
+int
+chcmp(void *x, void *y)
+{
+	return *(char*)x - *(char*)y;
+}
+
 const char* /*UNITTEST*/
 test_basic(void)
 {
 	bintree_t t = bintree_init(intcmp);
+	if (!t)
+		return "couldn't init bintree";
+
 	if (bintree_count(t) != 0)
 		return "newly allocated tree not empty";
 	
@@ -38,7 +47,8 @@ test_find(void)
 		}
 	
 	for (size_t i = 0; i < N; i++)
-		bintree_insert(t, &ia[i]);
+		if (!bintree_insert(t, &ia[i]))
+			return "insertion failed";
 
 	for (size_t i = 0; i < N; i++)
 		if (!bintree_find(t, &ia[i]))
