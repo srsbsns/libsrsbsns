@@ -123,6 +123,7 @@ bintree_insert(bintree_t t, void *data)
 	if(!n)
 		return false;
 	n->data = data;
+	n->left = n->right = NULL;
 	t->count++;
 	return true;
 }
