@@ -301,7 +301,7 @@ next_preorder(bintree_t t)
 			if (!t->iter->parent) //we're at root; done.
 				return t->iter = NULL;
 			
-			/* we're a right child again, repeat procedure */
+			/* if we're a right child again, repeat procedure */
 			if (t->iter->parent->right == t->iter)
 				continue;
 

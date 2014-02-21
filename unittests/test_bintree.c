@@ -123,6 +123,15 @@ test_iter(void)
 	s = "BA"; c = "BA"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
 	s = "BAC"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
 	s = "BCA"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	s = "MFZEIGKH"; c = "MFEIGHKZ"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
 	return NULL;
 
 }
+/*
+
+              M
+      F              Z
+E         I
+       G     K
+	H
+*/
