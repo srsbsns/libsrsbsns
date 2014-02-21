@@ -31,9 +31,8 @@ test_find(void)
 	const size_t N = 100;
 
 	int *ia = malloc(N * sizeof *ia);
-	int *ca = malloc(N * sizeof *ca);
 	for (size_t i = 0; i < N; i++)
-		if ((ia[i] = ca[i] = rand()) == 1337) { //don't put in 1337
+		if ((ia[i] = rand()) == 1337) { //don't put in 1337
 			i--;
 			continue;
 		}
