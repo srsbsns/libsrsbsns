@@ -85,6 +85,14 @@ bintree_insert(bintree_t t, void *data)
 
 	struct bt_node *n = t->root; 
 
+	if (!n) { //special case: tree is empty
+		n = malloc(sizeof *n);
+		n->parent = NULL;
+		n->data = datal
+		n->left = n->right = NULL;
+		return true;
+	}
+
 	while(n) {
 		if(t->cmpfn(data, n->data) <= 0)
 		{
