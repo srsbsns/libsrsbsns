@@ -294,7 +294,7 @@ next_preorder(bintree_t t)
 				return t->iter = NULL;
 
 			/* now we must be a left child.
-			 * if parent has a right child, go up one level*/
+			 * if parent has no right child, go up one level*/
 			if (t->iter->parent && !t->iter->parent->right)
 				t->iter = t->iter->parent;
 
