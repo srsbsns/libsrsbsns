@@ -236,8 +236,11 @@ bintree_rbalance(bintree_t t, void **src, size_t start, size_t end)
 {
 	size_t mid = (start+end)/2;
 	bintree_insert(t, src[mid]);
-	bintree_rbalance(t, src, start, mid-1);
-	bintree_rbalance(t, src, mid+1, end);
+	if (start > mid)
+		bintree_rbalance(t, src, start, mid-1);
+	
+	if (end > mid)
+		bintree_rbalance(t, src, mid+1, end);
 }
 
 void
@@ -251,7 +254,7 @@ bintree_balance(bintree_t t)
 		return;
 
 	bintree_clear(t);
-	bintree_rbalance(t, arr, 0, i-1);
+	bintree_rbalance(t, arr, 0, n-1);
 }
 
 void*
