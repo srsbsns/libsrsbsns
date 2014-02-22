@@ -35,6 +35,7 @@ for f in test_*.c; do
 		
 		cat <<EOF | sed -e "s/UTNAME/${tname}.${fname}/g" -e "s/UTFUNC/$fname/g" >>"$tmp"
 printf("Running UTNAME...");
+fflush(stdout);
 errmsg = UTFUNC();
 if (errmsg) {
 	printf("FAILED: %s\n", errmsg);
