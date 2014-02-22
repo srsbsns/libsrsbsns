@@ -67,7 +67,7 @@ deque_grow(deque_t d)
 	void **newloc = malloc(sizeof **newloc * d->size*2);
 	if(!newloc)
 		return false;
-	size_t offset = (d->size * 2 * sizeof d->data - d->front + d->back)/2
+	size_t offset = (d->size * 2 * sizeof d->data - d->front + d->back)/2;
 	memcpy(newloc + offset, d->data, d->size * sizeof d->data);
 	free(d->data);
 	d->data = newloc;
