@@ -248,8 +248,8 @@ test_iter(void)
 }
 
 
-const char* /*UNITTEST*/
-test_remove(void)
+const char*
+check_remove_1(void)
 {
 	bintree_t t = bintree_init(intcmp);
 
@@ -267,9 +267,8 @@ test_remove(void)
 
 	void *arr[3];
 	if (!bintree_collect(t, arr, TRAV_PREORDER))
-		return "collect failed";
+		return "collect failed (1)";
 
-	printf("it's %d and %d and %d\n", *(int*)arr[0], *(int*)arr[1], *(int*)arr[2]);
 	if (*(int*)arr[0] != 1 || *(int*)arr[1] != 2 || *(int*)arr[2] != 3) {
 		return "remove messed up the tree";
 	}
@@ -277,34 +276,37 @@ test_remove(void)
 	if (!bintree_remove(t, &one))
 		return "remove failed";
 
+
 	if (bintree_count(t) != 2)
 		return "wrong count after remove";
 	
 	if (!bintree_collect(t, arr, TRAV_PREORDER))
-		return "collect failed";
+		return "collect failed (2)";
 
-	printf("it's %d and %d\n", *(int*)arr[0], *(int*)arr[1]);
 	if (*(int*)arr[0] != 2 || *(int*)arr[1] != 3) {
-		return "remove messed up the tree";
+		return "remove messed up the tree (2)";
 	}
 
 	if (bintree_remove(t, &one))
 		return "remove did not fail";
 
+
 	if (!bintree_remove(t, &three))
 		return "remove failed";
+
 
 	if (bintree_count(t) != 1)
 		return "wrong count after remove";
 	
 	if (!bintree_collect(t, arr, TRAV_PREORDER))
-		return "collect failed";
+		return "collect failed (3)";
 
 	if (*(int*)arr[0] != 2)
-		return "remove messed up the tree (2)";
+		return "remove messed up the tree (3)";
+
 
 	if (bintree_remove(t, &three))
-		return "remove did not fail";
+		return "remove did not fail (2)";
 
 	if (!bintree_remove(t, &two))
 		return "remove failed";
@@ -313,7 +315,27 @@ test_remove(void)
 		return "wrong count after remove";
 	
 	if (!bintree_collect(t, arr, TRAV_PREORDER))
-		return "collect failed";
+		return "collect failed (4)";
+
+	bintree_dispose(t);
 
 	return NULL;
 }
+
+
+
+
+const char* /*UNITTEST*/
+test_remove(void)
+{
+	const char *e = check_remove_1();
+	if (e)
+		return e;
+
+	e = check_remove_2();
+	if (e)
+		return e;
+
+	return NULL;
+}
+
