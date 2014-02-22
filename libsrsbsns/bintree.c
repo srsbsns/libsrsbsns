@@ -424,9 +424,15 @@ bintree_rdump(struct bt_node *n, int depth, bintree_dump_fn df)
 	bintree_rdump(n->left, depth+1, df);
 	for (int i = 0; i < depth; i++)
 		fputs("  ", stderr);
-	fprintf(stderr, "[%12.12p (p:%12.12p)] ``", n, n->parent);
+	fputs("``", stderr);
 	df(n->data);
-	fputs("''\n", stderr);
+	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", n, n->parent);
+	if (n->parent)
+		df(n->parent->data);
+	else
+		fprintf(stderr, "(root)");
+	fprintf(stderr, "'')]");
+	fputs("\n", stderr);
 	bintree_rdump(n->right, depth+1, df);
 }
 
