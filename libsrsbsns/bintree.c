@@ -294,17 +294,16 @@ next_preorder(bintree_t t)
 				return t->iter = NULL;
 
 			/* now we must be a left child.
-			 * if parent has no right child, go up one level*/
-			if (t->iter->parent && !t->iter->parent->right)
+			 * if parent has no right child, go up one level,
+			 * then repeat procedure */
+			if (t->iter->parent && !t->iter->parent->right) {
 				t->iter = t->iter->parent;
+				continue;
+			}
 
 			if (!t->iter->parent) //we're at root; done.
 				return t->iter = NULL;
 			
-			/* if we're a right child again, repeat procedure */
-			if (t->iter->parent->right == t->iter)
-				continue;
-
 			/* finally, we're a left child with a parent
 			 * having a right child -- this is our node. */
 			t->iter = t->iter->parent->right;
