@@ -79,7 +79,7 @@ test_find(void)
 			i--;
 			continue;
 		}
-	
+
 	for (size_t i = 0; i < N; i++)
 		if (!bintree_insert(t, &ia[i]))
 			return "insertion failed";
@@ -97,50 +97,6 @@ test_find(void)
 	return NULL;
 }
 
-static const char*
-check_iter_vs_fixed(char *inp, char *chk, size_t len)
-{
-	bintree_t t = bintree_init(chcmp);
-
-	for (size_t i = 0; i < len; i++)
-		if (!bintree_insert(t, &inp[i]))
-			return "insertion failed";
-
-
-	char *res = malloc(len+1);
-	res[len] = '\0';
-
-	char *ch;
-	for (size_t i = 0; i < len; i++) {
-		if (!i) {
-			if (!(ch = bintree_first(t, TRAV_PREORDER))) {
-				free(res);
-				return "bintree_first failed";
-			}
-		} else {
-			if (!(ch = bintree_next(t))) {
-				return "bintree_next failed";
-				free(res);
-			}
-		}
-
-		res[i] = *ch;
-	}
-	if (bintree_next(t))
-		return "bintree_next did not fail when it should";
-
-
-	if (strcmp(res, chk) != 0) {
-		printf("got: '%s', want: '%s'\n", res, chk);
-		free(res);
-		return "traversal failure";
-	}
-
-	free(res);
-	bintree_dispose(t);
-	return NULL;
-
-}
 
 static const char*
 check_iter_vs_rec(char *inp, size_t len, int travtype)
@@ -153,38 +109,41 @@ check_iter_vs_rec(char *inp, size_t len, int travtype)
 			return "insertion failed";
 
 
+	//bintree_dump(t, chdumpfn);
 	void **rec = malloc((len+1) * sizeof *rec);
 	char nc = 0;
 	for (size_t i = 0; i < len; i++) {
 		rec[i] = &nc;
 	}
 
-	
+
 	if (!bintree_collect(t, rec, travtype)) {
 		e = "bintree_collect failed";
 		goto out;
 	}
 
-	//fprintf(stderr, "rec: '");
-	//for (size_t i = 0; i < len; i++) {
-		//if (rec[i])
-			//fprintf(stderr, "%c", *(char*)rec[i]);
-		//else break;
-	//}
-	//fprintf(stderr, "\n");
+	/*fprintf(stderr, "rec: '");
+	for (size_t i = 0; i < len; i++) {
+		if (rec[i])
+			fprintf(stderr, "%c", *(char*)rec[i]);
+		else break;
+	}
+	fprintf(stderr, "\n");
 
-	//fprintf(stderr, "ite: '");
+	fprintf(stderr, "ite: '");*/
 	char *ch;
 	size_t bc = bintree_count(t);
 	for (size_t i = 0; i < bc; i++) {
 		if (!i) {
 			if (!(ch = bintree_first(t, travtype))) {
 				e = "bintree_first failed";
+				//fprintf(stderr, "\n");
 				goto out;
 			}
 		} else {
 			if (!(ch = bintree_next(t))) {
 				e = "bintree_next failed";
+				//fprintf(stderr, "\n");
 				goto out;
 			}
 		}
@@ -192,6 +151,7 @@ check_iter_vs_rec(char *inp, size_t len, int travtype)
 
 		if (*ch != *(char*)rec[i]) {
 			e = "iterative and recursive traversal disagree";
+			//fprintf(stderr, "\n");
 			goto out;
 		}
 	}
@@ -215,38 +175,27 @@ test_iter(void)
 	char data[20];
 	time_t seed = time(NULL);
 	srand(seed);
-	for (size_t i = 0; i < 100000; i++) {
-		size_t len = rand() % (sizeof data - 2) + 1;
-		//fprintf(stderr, "i: %zu, len: %zu", i, len);
-		for (size_t j = 0; j < len; j++)
-			data[j] = 'A' + (rand()>>3) % 26;
-		data[len] = '\0';
-		//fprintf(stderr, ", tree: '%s'\n", data);
-		const char *e = check_iter_vs_rec(data, len, TRAV_INORDER);
-		if (e) {
-			fprintf(stderr, "seed was: %lu\n", seed);
-			return e;
+	int tt[] = {TRAV_PREORDER, TRAV_INORDER, TRAV_POSTORDER};
+
+	for (size_t ti = 0; ti < sizeof tt / sizeof tt[0]; ti++)
+		for (size_t i = 0; i < 100000; i++) {
+			size_t len = rand() % (sizeof data - 2) + 1;
+			//fprintf(stderr, "i: %zu, len: %zu", i, len);
+			for (size_t j = 0; j < len; j++)
+				data[j] = 'A' + (rand()>>3) % 26;
+			data[len] = '\0';
+			//fprintf(stderr, "inp: '%s'\n", data);
+			const char *e = check_iter_vs_rec(data, len, tt[ti]);
+			if (e) {
+				fprintf(stderr, "seed was: %lu\n", seed);
+				return e;
+			}
+
 		}
-
-	}
-       const char *s, *c;
-       char chk[sizeof data];
-       const char *e;
-
-       //check some fixed
-       s = "FBADCEGIH"; c = "FBADCEGIH"; strcpy(data, c); strcpy(chk, s); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "A"; c = "A"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "AB"; c = "AB"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "BA"; c = "BA"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "BAC"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "BCA"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-       s = "MFZEIGKH"; c = "MFEIGHKZ"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
-
 
 	return NULL;
 
 }
-
 
 const char*
 check_remove_1(void)
