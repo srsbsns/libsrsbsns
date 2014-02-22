@@ -95,24 +95,19 @@ bintree_insert(bintree_t t, void *data)
 	}
 
 	while(n) {
-		if(t->cmpfn(data, n->data) <= 0)
-		{
+		if(t->cmpfn(data, n->data) <= 0) {
 			if(n->left)
 				n = n->left;
-			else
-			{
+			else {
 				n->left = malloc(sizeof *n->left);
 				n->left->parent = n;
 				n = n->left;
 				break;
 			}
-		}
-		else
-		{
+		} else {
 			if(n->right)
 				n = n->right;
-			else
-			{
+			else {
 				n->right = malloc(sizeof *n->right);
 				n->right->parent = n;
 				n = n->right;
@@ -136,8 +131,7 @@ bintree_nodefind(bintree_t t, void *data)
 
 	struct bt_node *n = t->root;
 
-	while(n)
-	{
+	while(n) {
 		if(t->cmpfn(data, n->data) < 0)
 			n = n->left;
 		else if(t->cmpfn(data, n->data) > 0)
@@ -161,23 +155,20 @@ bintree_remove(bintree_t t, void *data)
 {
 	struct bt_node *n = bintree_nodefind(t, data);
 	struct bt_node *tmp;
-	if(!n->right && !n->left)
-	{
+
+	if(!n->right && !n->left) {
 		free(n);
 		return true;
-	}
-	else if(n->right)
-	{
+	} else if(n->right) {
 		tmp = n->right;
 		while(tmp->left)
 			tmp = tmp->left;
-	}
-	else
-	{
+	} else {
 		tmp = n->left;
 		while(tmp->right)
 			tmp = tmp->right;
 	}
+
 	bintree_swapnode(tmp, n);
 	free(tmp);
 	t->count--;
