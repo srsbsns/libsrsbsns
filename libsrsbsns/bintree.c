@@ -294,7 +294,11 @@ first_preorder(bintree_t t)
 static void*
 first_inorder(bintree_t t)
 {
-	return NULL;
+	t->iter = t->root;
+	while (t->iter->left)
+		t->iter = t->iter->left;
+
+	return t->iter->data;
 }
 
 static void*
@@ -344,7 +348,31 @@ next_preorder(bintree_t t)
 static void*
 next_inorder(bintree_t t)
 {
-	return NULL;
+	bool root = !t->iter->parent;
+	bool left = !root && t->iter->parent->left == t->iter;
+	
+	if (t->iter->right) {
+		t->iter = t->iter->right;
+		while (t->iter->left)
+			t->iter = t->iter->left;
+	} else {
+		if (root)
+			return t->iter = NULL; //done
+
+		/* go up until we're at a node at which we arrived
+		 * from the left side */
+		struct bt_node *prev = NULL;
+		do {
+			prev = t->iter;
+			t->iter = t->iter->parent;
+			left = t->iter->left == prev;
+		} while (!left && t->iter->parent);
+
+		if (!t->iter->parent && !left)
+			return t->iter = NULL; //at root; done
+	}
+
+	return t->iter->data;
 }
 
 static void*
