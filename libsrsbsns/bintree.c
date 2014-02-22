@@ -53,7 +53,7 @@ bintree_dispose(bintree_t t)
 size_t
 bintree_count(bintree_t t)
 {
-	if(!t || !t->root)
+	if (!t || !t->root)
 		return 0;
 	return t->count;
 }
@@ -61,7 +61,7 @@ bintree_count(bintree_t t)
 void
 bintree_clear(bintree_t t)
 {
-	if(!t)
+	if (!t)
 		return;
 
 	bintree_rclear(t->root);
@@ -82,7 +82,7 @@ bintree_rclear(struct bt_node *n)
 bool
 bintree_insert(bintree_t t, void *data)
 {
-	if(!t)
+	if (!t)
 		return false;
 
 	struct bt_node *n = t->root; 
@@ -96,10 +96,10 @@ bintree_insert(bintree_t t, void *data)
 		return true;
 	}
 
-	while(n) {
+	while (n) {
 		int res = t->cmpfn(data, n->data);
-		if(res < 0) {
-			if(n->left)
+		if (res < 0) {
+			if (n->left)
 				n = n->left;
 			else {
 				n->left = malloc(sizeof *n->left);
@@ -110,7 +110,7 @@ bintree_insert(bintree_t t, void *data)
 				break;
 			}
 		} else if (res > 0) {
-			if(n->right)
+			if (n->right)
 				n = n->right;
 			else {
 				n->right = malloc(sizeof *n->right);
@@ -123,7 +123,7 @@ bintree_insert(bintree_t t, void *data)
 		} else
 			break;
 	}
-	if(!n)
+	if (!n)
 		return false;
 	n->data = data;
 	return true;
@@ -132,15 +132,15 @@ bintree_insert(bintree_t t, void *data)
 static struct bt_node*
 bintree_nodefind(bintree_t t, void *data)
 {
-	if(!t)
+	if (!t)
 		return 0;
 
 	struct bt_node *n = t->root;
 
-	while(n) {
-		if(t->cmpfn(data, n->data) < 0)
+	while (n) {
+		if (t->cmpfn(data, n->data) < 0)
 			n = n->left;
-		else if(t->cmpfn(data, n->data) > 0)
+		else if (t->cmpfn(data, n->data) > 0)
 			n = n->right;
 		else
 			return n;
@@ -162,16 +162,16 @@ bintree_remove(bintree_t t, void *data)
 	struct bt_node *n = bintree_nodefind(t, data);
 	struct bt_node *tmp;
 
-	if(!n->right && !n->left) {
+	if (!n->right && !n->left) {
 		free(n);
 		return true;
-	} else if(n->right) {
+	} else if (n->right) {
 		tmp = n->right;
-		while(tmp->left)
+		while (tmp->left)
 			tmp = tmp->left;
 	} else {
 		tmp = n->left;
-		while(tmp->right)
+		while (tmp->right)
 			tmp = tmp->right;
 	}
 
@@ -217,6 +217,7 @@ bintree_first(bintree_t t, int travtype)
 {
 	t->travtype = travtype;
 	t->iter = NULL;
+
 	switch (t->travtype) {
 	case TRAV_PREORDER:
 		return first_preorder(t);
@@ -328,7 +329,7 @@ rtrav_preorder(struct bt_node *n, void **dest, size_t *i)
 static void
 rtrav_inorder(struct bt_node *n, void **dest, size_t *i)
 {
-	if(!n)
+	if (!n)
 		return;
 
 	rtrav_inorder(n->left, dest, i);
@@ -339,7 +340,7 @@ rtrav_inorder(struct bt_node *n, void **dest, size_t *i)
 static void
 rtrav_postorder(struct bt_node *n, void **dest, size_t *i)
 {
-	if(!n)
+	if (!n)
 		return;
 
 	rtrav_postorder(n->left, dest, i);
