@@ -2,6 +2,8 @@
 * libsrsbsns - A srs lib
 * See README for contact-, COPYING for license information. */
 
+#include <stdbool.h>
+
 typedef struct deque *deque_t;
 
 deque_t deque_init(int initsize);
