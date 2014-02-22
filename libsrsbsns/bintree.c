@@ -67,6 +67,7 @@ bintree_clear(bintree_t t)
 
 	bintree_rclear(t->root);
 	t->count = 0;
+	t->root = NULL;
 }
 
 static void
@@ -389,8 +390,11 @@ rtrav_postorder(struct bt_node *n, void **dest, size_t *i)
 bool
 bintree_collect(bintree_t t, void **dest, int travmode)
 {
-	if (!t || !t->root)
+	if (!t)
 		return false;
+
+	if (!t->root)
+		return true;
 	
 	size_t i = 0;
 
