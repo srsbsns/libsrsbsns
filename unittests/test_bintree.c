@@ -3,6 +3,7 @@
   * See README for contact-, COPYING for license information.  */
 
 #include <time.h>
+#include <math.h>
 
 #include "unittests_common.h"
 
@@ -134,15 +135,20 @@ check_balance(char *inp, size_t len)
 	}
 
 	size_t height = bintree_height(t);
-	fprintf(stderr, "height is %zu\n", height);
-		bintree_dump(t, chdumpfn);
+	//fprintf(stderr, "height is %zu\n", height);
+	//bintree_dump(t, chdumpfn);
 
 	bintree_balance(t);
 
 	size_t nheight = bintree_height(t);
-	fprintf(stderr, "nheight is %zu\n", nheight);
+	//fprintf(stderr, "nheight is %zu\n", nheight);
 
-		bintree_dump(t, chdumpfn);
+	if (1 + (int)log2(bintree_count(t)) < nheight) {
+		e = "bad height after balance";
+		goto out;
+	}
+
+	//bintree_dump(t, chdumpfn);
 
 	if (!bintree_collect(t, chk, TRAV_INORDER)) {
 		e = "bintree_collect failed (2)";
