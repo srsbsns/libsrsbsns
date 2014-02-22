@@ -143,7 +143,7 @@ check_iter_vs_fixed(char *inp, char *chk, size_t len)
 }
 
 static const char*
-check_iter_vs_rec(char *inp, size_t len)
+check_iter_vs_rec(char *inp, size_t len, int travtype)
 {
 	const char *e = NULL;
 	bintree_t t = bintree_init(chcmp);
@@ -160,7 +160,7 @@ check_iter_vs_rec(char *inp, size_t len)
 	}
 
 	
-	if (!bintree_collect(t, rec, TRAV_PREORDER)) {
+	if (!bintree_collect(t, rec, travtype)) {
 		e = "bintree_collect failed";
 		goto out;
 	}
@@ -178,7 +178,7 @@ check_iter_vs_rec(char *inp, size_t len)
 	size_t bc = bintree_count(t);
 	for (size_t i = 0; i < bc; i++) {
 		if (!i) {
-			if (!(ch = bintree_first(t, TRAV_PREORDER))) {
+			if (!(ch = bintree_first(t, travtype))) {
 				e = "bintree_first failed";
 				goto out;
 			}
@@ -222,7 +222,7 @@ test_iter(void)
 			data[j] = 'A' + (rand()>>3) % 26;
 		data[len] = '\0';
 		//fprintf(stderr, ", tree: '%s'\n", data);
-		const char *e = check_iter_vs_rec(data, len);
+		const char *e = check_iter_vs_rec(data, len, TRAV_INORDER);
 		if (e) {
 			fprintf(stderr, "seed was: %lu\n", seed);
 			return e;
