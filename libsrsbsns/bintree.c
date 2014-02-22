@@ -97,31 +97,35 @@ bintree_insert(bintree_t t, void *data)
 	}
 
 	while(n) {
-		if(t->cmpfn(data, n->data) <= 0) {
+		int res = t->cmpfn(data, n->data);
+		if(res < 0) {
 			if(n->left)
 				n = n->left;
 			else {
 				n->left = malloc(sizeof *n->left);
 				n->left->parent = n;
 				n = n->left;
+				n->left = n->right = NULL;
+				t->count++;
 				break;
 			}
-		} else {
+		} else if (res > 0) {
 			if(n->right)
 				n = n->right;
 			else {
 				n->right = malloc(sizeof *n->right);
 				n->right->parent = n;
 				n = n->right;
+				n->left = n->right = NULL;
+				t->count++;
 				break;
 			}
-		}
+		} else
+			break;
 	}
 	if(!n)
 		return false;
 	n->data = data;
-	n->left = n->right = NULL;
-	t->count++;
 	return true;
 }
 
