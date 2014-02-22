@@ -36,6 +36,38 @@ test_basic(void)
 }
 
 const char* /*UNITTEST*/
+test_insert(void)
+{
+	int a = 3, *p = &a;
+	int b = 2, *q = &b;
+
+	bintree_t t = bintree_init(intcmp);
+
+	if (!bintree_insert(t, q))
+		return "insertion failed";
+
+	if (bintree_count(t) != 1)
+		return "wrong count after insert";
+
+	if (!bintree_insert(t, q))
+		return "insertion (again) failed";
+
+	if (bintree_count(t) != 1)
+		return "wrong count after same insert again";
+
+	if (!bintree_insert(t, p))
+		return "insertion failed 3";
+
+	if (bintree_count(t) != 2)
+		return "wrong count after another insert";
+
+	bintree_dispose(t);
+
+	return NULL;
+}
+
+
+const char* /*UNITTEST*/
 test_find(void)
 {
 	bintree_t t = bintree_init(intcmp);
