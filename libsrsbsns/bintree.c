@@ -304,7 +304,15 @@ first_inorder(bintree_t t)
 static void*
 first_postorder(bintree_t t)
 {
-	return NULL;
+	t->iter = t->root;
+	while (t->iter->left || t->iter->right) {
+		if (t->iter->left)
+			t->iter = t->iter->left;
+		else
+			t->iter = t->iter->right;
+	}
+
+	return t->iter->data;
 }
 
 static void*
@@ -378,7 +386,26 @@ next_inorder(bintree_t t)
 static void*
 next_postorder(bintree_t t)
 {
-	return NULL;
+	bool root = !t->iter->parent;
+	bool left = !root && t->iter->parent->left == t->iter;
+	
+
+	if (root)
+		return t->iter = NULL; //done
+
+	t->iter = t->iter->parent;
+
+	if (left && t->iter->right) {
+		t->iter = t->iter->right;
+		while (t->iter->left || t->iter->right) {
+			if (t->iter->left)
+				t->iter = t->iter->left;
+			else
+				t->iter = t->iter->right;
+		}
+	}
+
+	return t->iter->data;
 }
 
 static void
