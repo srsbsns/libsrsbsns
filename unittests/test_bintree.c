@@ -8,6 +8,18 @@
 
 #include <libsrsbsns/bintree.h>
 
+void
+chdumpfn(void *i)
+{
+	fprintf(stderr, "%c", *(char*)i);
+}
+
+void
+dumpfn(void *i)
+{
+	fprintf(stderr, "%d", *(int*)i);
+}
+
 int
 intcmp(void *x, void *y)
 {
