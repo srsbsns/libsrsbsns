@@ -1,4 +1,4 @@
-/* addr.c - (C) 2012, Learath2, Timo Buhrmester
+/* bintree.c - (C) 2012, Learath2, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 
@@ -227,7 +227,7 @@ bintree_rbalance(bintree_t t, void **src, size_t start, size_t end)
 {
 	size_t mid = (start+end)/2;
 	bintree_insert(t, src[mid]);
-	if (start > mid)
+	if (start < mid)
 		bintree_rbalance(t, src, start, mid-1);
 	
 	if (end > mid)

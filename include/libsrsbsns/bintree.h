@@ -1,4 +1,4 @@
-/* strlist.c - (C) 2012, Learath2, Timo Buhrmester
+/* bintree.h - (C) 2012, Learath2, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 
