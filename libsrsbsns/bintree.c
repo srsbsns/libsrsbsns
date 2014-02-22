@@ -260,9 +260,9 @@ bintree_first(bintree_t t, int travtype)
 	case TRAV_PREORDER:
 		return first_preorder(t);
 	case TRAV_INORDER:
-		return first_preorder(t);
+		return first_inorder(t);
 	case TRAV_POSTORDER:
-		return first_preorder(t);
+		return first_postorder(t);
 	default:
 		return NULL;
 	}
