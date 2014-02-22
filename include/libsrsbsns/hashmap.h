@@ -1,6 +1,6 @@
 /* hashmap.h - (C) 2012, Timo Buhrmester
  * libsrsbsns - A srs lib
-  * See README for contact-, COPYING for license information.  */
+ * See README for contact-, COPYING for license information. */
 
 #ifndef LIBSRSBSNS_HASHMAP_H
 #define LIBSRSBSNS_HASHMAP_H 1

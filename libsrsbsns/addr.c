@@ -1,6 +1,6 @@
 /* addr.c - (C) 2012, Timo Buhrmester
  * libsrsbsns - A srs lib
-  * See README for contact-, COPYING for license information.  */
+ * See README for contact-, COPYING for license information. */
 
 #if HAVE_CONFIG_H
 # include <config.h>

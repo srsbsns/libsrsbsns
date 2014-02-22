@@ -1,6 +1,6 @@
 /* ringbuf.c - (C) 2012, Timo Buhrmester
  * libsrsbsns - A srs lib
-  * See README for contact-, COPYING for license information.  */
+ * See README for contact-, COPYING for license information. */
 
 #if HAVE_CONFIG_H
 # include <config.h>
@@ -136,12 +136,12 @@ void
 ringbuf_dump(ringbuf_t b)
 {
 	struct ringbuf *bf = b; // XXX
-	fprintf(stderr,  "ringbuf dump (hnd: %p)\n", b);
-	fprintf(stderr,  "distance start-head: %td\n", bf->head - bf->buf);
-	fprintf(stderr,  "distance head-tail: %td\n", bf->tail - bf->head);
-	fprintf(stderr,  "distance tail-end: %td\n", (ptrdiff_t)bf->bufsz - (bf->tail - bf->buf));
-	fprintf(stderr,  "bufsz: %zu, numelem :%zu\n", bf->bufsz, bf->num);
-	fprintf(stderr,  "actual buffer:");
+	fprintf(stderr, "ringbuf dump (hnd: %p)\n", b);
+	fprintf(stderr, "distance start-head: %td\n", bf->head - bf->buf);
+	fprintf(stderr, "distance head-tail: %td\n", bf->tail - bf->head);
+	fprintf(stderr, "distance tail-end: %td\n", (ptrdiff_t)bf->bufsz - (bf->tail - bf->buf));
+	fprintf(stderr, "bufsz: %zu, numelem :%zu\n", bf->bufsz, bf->num);
+	fprintf(stderr, "actual buffer:");
 	for(size_t i = 0; i < bf->bufsz; ++i)
 	{
 		fprintf(stderr, " %02x", bf->buf[i]);
@@ -152,7 +152,7 @@ ringbuf_dump(ringbuf_t b)
 	bool wrapped = false;
 	for(size_t i = 0; i < bf->num; i++)
 	{
-		fprintf(stderr,  "%celem: '%s'\n", wrapped?'*':' ', p);
+		fprintf(stderr, "%celem: '%s'\n", wrapped?'*':' ', p);
 		wrapped = false;
 		p += strlen(p) + 1;
 		if (p - bf->buf == (ptrdiff_t)bf->bufsz || p[0] == '\0')
@@ -161,6 +161,6 @@ ringbuf_dump(ringbuf_t b)
 			wrapped = true;
 		}
 	}
-	fprintf(stderr,  "this is it\n");
+	fprintf(stderr, "this is it\n");
 }
 */

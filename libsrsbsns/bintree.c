@@ -1,3 +1,7 @@
+/* addr.c - (C) 2012, Learath2, Timo Buhrmester
+ * libsrsbsns - A srs lib
+ * See README for contact-, COPYING for license information. */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <libsrsbsns/bintree.h>
@@ -87,7 +91,7 @@ bintree_insert(bintree_t t, void *data)
 	if (!t)
 		return false;
 
-	struct bt_node *n = t->root; 
+	struct bt_node *n = t->root;
 
 	if (!n) { //special case: tree is empty
 		t->root = malloc(sizeof *t->root);
@@ -168,7 +172,7 @@ bintree_remove(bintree_t t, void *data)
 
 	if (!n)
 		return false;
-	
+
 	bool root = !n->parent;
 	bool left = !root && n->parent->left == n;
 
@@ -236,7 +240,7 @@ bintree_rbalance(bintree_t t, void **src, size_t start, size_t end)
 	bintree_rbalance(t, src, mid+1, end);
 }
 
-void 
+void
 bintree_balance(bintree_t t)
 {
 	size_t n = t->count;
@@ -266,7 +270,7 @@ bintree_first(bintree_t t, int travtype)
 	default:
 		return NULL;
 	}
-	
+
 }
 
 void*
@@ -342,14 +346,14 @@ next_preorder(bintree_t t)
 
 			if (!t->iter->parent) //we're at root; done.
 				return t->iter = NULL;
-			
+
 			/* finally, we're a left child with a parent
 			 * having a right child -- this is our node. */
 			t->iter = t->iter->parent->right;
 			break;
 		}
 	}
-	
+
 	return t->iter->data;
 }
 
@@ -358,7 +362,7 @@ next_inorder(bintree_t t)
 {
 	bool root = !t->iter->parent;
 	bool left = !root && t->iter->parent->left == t->iter;
-	
+
 	if (t->iter->right) {
 		t->iter = t->iter->right;
 		while (t->iter->left)
@@ -388,7 +392,7 @@ next_postorder(bintree_t t)
 {
 	bool root = !t->iter->parent;
 	bool left = !root && t->iter->parent->left == t->iter;
-	
+
 
 	if (root)
 		return t->iter = NULL; //done
@@ -450,7 +454,7 @@ bintree_collect(bintree_t t, void **dest, int travmode)
 
 	if (!t->root)
 		return true;
-	
+
 	size_t i = 0;
 
 	switch (travmode) {
@@ -475,7 +479,7 @@ bintree_rdump(struct bt_node *n, int depth, bintree_dump_fn df)
 {
 	if (!n)
 		return;
-	
+
 	bintree_rdump(n->left, depth+1, df);
 	for (int i = 0; i < depth; i++)
 		fputs("  ", stderr);
@@ -497,5 +501,3 @@ bintree_dump(bintree_t t, bintree_dump_fn df)
 	fprintf(stderr, "bintree %12.12p:\n", t);
 	bintree_rdump(t->root, 0, df);
 }
-
-
