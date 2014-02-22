@@ -407,3 +407,26 @@ bintree_collect(bintree_t t, void **dest, int travmode)
 	return true;
 }
 
+static void
+bintree_rdump(struct bt_node *n, int depth, bintree_dump_fn df)
+{
+	if (!n)
+		return;
+	
+	bintree_rdump(n->left, depth+1, df);
+	for (int i = 0; i < depth; i++)
+		fputs("  ", stderr);
+	fprintf(stderr, "[%12.12p (p:%12.12p)] ``", n, n->parent);
+	df(n->data);
+	fputs("''\n", stderr);
+	bintree_rdump(n->right, depth+1, df);
+}
+
+void
+bintree_dump(bintree_t t, bintree_dump_fn df)
+{
+	fprintf(stderr, "bintree %12.12p:\n", t);
+	bintree_rdump(t->root, 0, df);
+}
+
+
