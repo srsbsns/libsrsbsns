@@ -97,7 +97,61 @@ test_find(void)
 	return NULL;
 }
 
+static const char*
+check_balance(char *inp, size_t len)
+{
+	const char *e = NULL;
+	bintree_t t = bintree_init(chcmp);
 
+	for (size_t i = 0; i < len; i++)
+		if (!bintree_insert(t, &inp[i]))
+			return "insertion failed";
+
+	void **rec = malloc((len+1) * sizeof *rec);
+	void **chk = malloc((len+1) * sizeof *chk);
+	char nc = 0;
+	for (size_t i = 0; i < len; i++) {
+		rec[i] = &nc;
+		chk[i] = &nc;
+	}
+
+
+	if (!bintree_collect(t, rec, TRAV_INORDER)) {
+		e = "bintree_collect failed";
+		goto out;
+	}
+
+	size_t height = bintree_height(t);
+	fprintf(stderr, "height is %zu\n", height);
+		bintree_dump(t, chdumpfn);
+
+	bintree_balance(t);
+
+	size_t nheight = bintree_height(t);
+	fprintf(stderr, "nheight is %zu\n", nheight);
+
+		bintree_dump(t, chdumpfn);
+
+	if (!bintree_collect(t, chk, TRAV_INORDER)) {
+		e = "bintree_collect failed (2)";
+		goto out;
+	}
+
+	size_t bc = bintree_count(t);
+	for (size_t i = 0; i < bc; i++) {
+		if (rec[i] != chk[i]) {
+			e = "tree messed up after balance";
+			goto out;
+		}
+	}
+
+out:
+	free(rec);
+	free(chk);
+	bintree_dispose(t);
+	return e;
+	
+}
 static const char*
 check_iter_vs_rec(char *inp, size_t len, int travtype)
 {
@@ -196,6 +250,32 @@ test_iter(void)
 	return NULL;
 
 }
+
+const char* /*UNITTEST*/
+test_balance(void)
+{
+	char data[20];
+	time_t seed = time(NULL);
+	srand(seed);
+	for (size_t i = 0; i < 100000; i++) {
+		size_t len = rand() % (sizeof data - 2) + 1;
+		//fprintf(stderr, "i: %zu, len: %zu", i, len);
+		for (size_t j = 0; j < len; j++)
+			data[j] = 'A' + (rand()>>3) % 26;
+		data[len] = '\0';
+		//fprintf(stderr, "inp: '%s'\n", data);
+		const char *e = check_balance(data, len);
+		if (e) {
+			fprintf(stderr, "seed was: %lu\n", seed);
+			return e;
+		}
+	}
+
+
+	return NULL;
+
+}
+
 
 const char*
 check_remove_1(void)
