@@ -22,4 +22,6 @@ void bintree_balance(bintree_t t);
 void* bintree_first(bintree_t t, int travtype);
 void* bintree_next(bintree_t t);
 
+bool bintree_collect(bintree_t t, void **dest, int travmode);
+
 #endif /* LIBSRSBSNS_BINTREE_H */

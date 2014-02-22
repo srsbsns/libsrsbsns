@@ -20,8 +20,10 @@ struct bintree {
 static void bintree_rclear(struct bt_node *n);
 static struct bt_node* bintree_nodefind(bintree_t t, void *data);
 static void bintree_swapnode(struct bt_node *a, struct bt_node *b);
-static void bintree_dumptoarray(struct bt_node *n, void **dest, size_t *i);
 static void bintree_rbalance(bintree_t t, void **src, size_t start, size_t end);
+static void rtrav_preorder(struct bt_node *n, void **dest, size_t *i);
+static void rtrav_inorder(struct bt_node *n, void **dest, size_t *i);
+static void rtrav_postorder(struct bt_node *n, void **dest, size_t *i);
 static void* first_preorder(bintree_t t);
 static void* first_inorder(bintree_t t);
 static void* first_postorder(bintree_t t);
@@ -184,17 +186,6 @@ bintree_swapnode(struct bt_node *a, struct bt_node *b)
 }
 
 static void
-bintree_dumptoarray(struct bt_node *n, void **dest, size_t *i)
-{
-	if(!n)
-		return
-
-	bintree_dumptoarray(n->left, dest, i);
-	dest[(*i)++] = n->data;
-	bintree_dumptoarray(n->right, dest, i);
-}
-
-static void
 bintree_rbalance(bintree_t t, void **src, size_t start, size_t end)
 {
 	size_t mid = (start+end)/2;
@@ -210,7 +201,9 @@ bintree_balance(bintree_t t)
 	void **arr = malloc(n * sizeof *arr);
 
 	size_t i = 0;
-	bintree_dumptoarray(t->root, arr, &i);
+	if (!bintree_collect(t, arr, TRAV_INORDER))
+		return;
+
 	bintree_clear(t);
 	bintree_rbalance(t, arr, 0, i-1);
 }
@@ -315,5 +308,64 @@ static void*
 next_postorder(bintree_t t)
 {
 	return NULL;
+}
+
+static void
+rtrav_preorder(struct bt_node *n, void **dest, size_t *i)
+{
+	if (!n)
+		return;
+
+	dest[(*i)++] = n->data;
+	rtrav_preorder(n->left, dest, i);
+	rtrav_preorder(n->right, dest, i);
+}
+
+static void
+rtrav_inorder(struct bt_node *n, void **dest, size_t *i)
+{
+	if(!n)
+		return;
+
+	rtrav_inorder(n->left, dest, i);
+	dest[(*i)++] = n->data;
+	rtrav_inorder(n->right, dest, i);
+}
+
+static void
+rtrav_postorder(struct bt_node *n, void **dest, size_t *i)
+{
+	if(!n)
+		return;
+
+	rtrav_postorder(n->left, dest, i);
+	rtrav_postorder(n->right, dest, i);
+	dest[(*i)++] = n->data;
+}
+
+
+bool
+bintree_collect(bintree_t t, void **dest, int travmode)
+{
+	if (!t || !t->root)
+		return false;
+	
+	size_t i = 0;
+
+	switch (travmode) {
+	case TRAV_PREORDER:
+		rtrav_preorder(t->root, dest, &i);
+		break;
+	case TRAV_INORDER:
+		rtrav_inorder(t->root, dest, &i);
+		break;
+	case TRAV_POSTORDER:
+		rtrav_postorder(t->root, dest, &i);
+		break;
+	default:
+		return false;
+	}
+
+	return true;
 }
 
