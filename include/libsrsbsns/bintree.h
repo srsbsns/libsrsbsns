@@ -18,6 +18,7 @@ typedef void (*bintree_dump_fn)(void *elem);
 bintree_t bintree_init(bintree_cmp_fn cmpfn);
 void bintree_dispose(bintree_t t);
 size_t bintree_count(bintree_t t);
+size_t bintree_height(bintree_t t);
 void bintree_clear(bintree_t t);
 bool bintree_insert(bintree_t t, void *data);
 void* bintree_find(bintree_t t, void *data);

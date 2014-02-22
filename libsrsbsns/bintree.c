@@ -54,6 +54,30 @@ bintree_dispose(bintree_t t)
 	free(t);
 }
 
+static void
+discoverheight(struct bt_node *n, size_t depth, size_t *maxdepth)
+{
+	if (depth > *maxdepth)
+		*maxdepth = depth;
+	
+	if (n->left)
+		discoverheight(n->left, depth+1, maxdepth);
+	if (n->right)
+		discoverheight(n->right, depth+1, maxdepth);
+}
+
+size_t
+bintree_height(bintree_t t)
+{
+	if (!t || !t->root)
+		return 0;
+
+	size_t max = 1;
+	discoverheight(t->root, 1, &max);
+
+	return max;
+}
+
 size_t
 bintree_count(bintree_t t)
 {
