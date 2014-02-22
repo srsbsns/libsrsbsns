@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <libsrsbsns/bintree.h>
 
 struct bt_node {
@@ -159,24 +160,56 @@ bintree_find(bintree_t t, void* data)
 bool
 bintree_remove(bintree_t t, void *data)
 {
+	if (!t)
+		return false;
+
 	struct bt_node *n = bintree_nodefind(t, data);
-	struct bt_node *tmp;
+
+	if (!n)
+		return false;
+	
+	bool root = !n->parent;
+	bool left = !root && n->parent->left == n;
 
 	if (!n->right && !n->left) {
-		free(n);
-		return true;
-	} else if (n->right) {
-		tmp = n->right;
-		while (tmp->left)
-			tmp = tmp->left;
+		n->left = n->right = NULL;
+		if (root)
+			t->root = NULL;
+	} else if (!n->left || !n->right) {
+		struct bt_node *child = !n->left ? n->right : n->left;
+		if (root) {
+			t->root = child;
+			child->parent = t->root;
+		} else {
+			if (left)
+				n->parent->left = child;
+			else
+				n->parent->right = child;
+			child->parent = n->parent;
+		}
 	} else {
-		tmp = n->left;
-		while (tmp->right)
-			tmp = tmp->right;
+		struct bt_node *maxnode = n->left;
+		while (maxnode->right)
+			maxnode = maxnode->right;
+
+		void *tmp = maxnode->data;
+		maxnode->data = n->data;
+		n->data = tmp;
+
+		if (maxnode->parent->left == maxnode)
+			maxnode->parent->left = NULL;
+		else if (maxnode->parent->right == maxnode)
+			maxnode->parent->right = NULL;
+		else {
+			fprintf(stderr, "WAT!\n");
+			exit(2);
+		}
+
+		n = maxnode;
 	}
 
-	bintree_swapnode(tmp, n);
-	free(tmp);
+	free(n);
+
 	t->count--;
 	return true;
 }
