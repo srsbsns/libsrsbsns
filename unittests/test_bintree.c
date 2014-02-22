@@ -2,6 +2,8 @@
  * libsrsbsns - A srs lib
   * See README for contact-, COPYING for license information.  */
 
+#include <time.h>
+
 #include "unittests_common.h"
 
 #include <libsrsbsns/bintree.h>
@@ -64,7 +66,7 @@ test_find(void)
 }
 
 static const char*
-check_preorder(char *inp, char *chk, size_t len)
+check_iter_vs_fixed(char *inp, char *chk, size_t len)
 {
 	bintree_t t = bintree_init(chcmp);
 
@@ -108,30 +110,107 @@ check_preorder(char *inp, char *chk, size_t len)
 
 }
 
+static const char*
+check_iter_vs_rec(char *inp, size_t len)
+{
+	const char *e = NULL;
+	bintree_t t = bintree_init(chcmp);
+
+	for (size_t i = 0; i < len; i++)
+		if (!bintree_insert(t, &inp[i]))
+			return "insertion failed";
+
+
+	void **rec = malloc((len+1) * sizeof *rec);
+	char nc = 0;
+	for (size_t i = 0; i < len; i++) {
+		rec[i] = &nc;
+	}
+
+	
+	if (!bintree_collect(t, rec, TRAV_PREORDER)) {
+		e = "bintree_collect failed";
+		goto out;
+	}
+
+	//fprintf(stderr, "rec: '");
+	//for (size_t i = 0; i < len; i++) {
+		//if (rec[i])
+			//fprintf(stderr, "%c", *(char*)rec[i]);
+		//else break;
+	//}
+	//fprintf(stderr, "\n");
+
+	//fprintf(stderr, "ite: '");
+	char *ch;
+	size_t bc = bintree_count(t);
+	for (size_t i = 0; i < bc; i++) {
+		if (!i) {
+			if (!(ch = bintree_first(t, TRAV_PREORDER))) {
+				e = "bintree_first failed";
+				goto out;
+			}
+		} else {
+			if (!(ch = bintree_next(t))) {
+				e = "bintree_next failed";
+				goto out;
+			}
+		}
+		//fprintf(stderr, "%c", *ch);
+
+		if (*ch != *(char*)rec[i]) {
+			e = "iterative and recursive traversal disagree";
+			goto out;
+		}
+	}
+	//fprintf(stderr, "\n");
+
+	if (bintree_next(t)) {
+		e = "bintree_next did not fail when it should";
+		goto out;
+	}
+
+out:
+	free(rec);
+	bintree_dispose(t);
+	return e;
+	
+}
+
 const char* /*UNITTEST*/
 test_iter(void)
 {
-	char data[1024];
-	char chk[1024];
+	char data[20];
+	time_t seed = time(NULL);
+	srand(seed);
+	for (size_t i = 0; i < 100000; i++) {
+		size_t len = rand() % (sizeof data - 2) + 1;
+		//fprintf(stderr, "i: %zu, len: %zu", i, len);
+		for (size_t j = 0; j < len; j++)
+			data[j] = 'A' + (rand()>>3) % 26;
+		data[len] = '\0';
+		//fprintf(stderr, ", tree: '%s'\n", data);
+		const char *e = check_iter_vs_rec(data, len);
+		if (e) {
+			fprintf(stderr, "seed was: %lu\n", seed);
+			return e;
+		}
 
-	const char *s;
-	const char *c;
-	const char *e;
-	s = "FBADCEGIH"; c = "FBADCEGIH"; strcpy(data, c); strcpy(chk, s); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "A"; c = "A"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "AB"; c = "AB"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "BA"; c = "BA"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "BAC"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "BCA"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
-	s = "MFZEIGKH"; c = "MFEIGHKZ"; strcpy(data, s); strcpy(chk, c); e = check_preorder(data, chk, strlen(data)); if (e) return e;
+	}
+       const char *s, *c;
+       char chk[sizeof data];
+       const char *e;
+
+       //check some fixed
+       s = "FBADCEGIH"; c = "FBADCEGIH"; strcpy(data, c); strcpy(chk, s); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "A"; c = "A"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "AB"; c = "AB"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "BA"; c = "BA"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "BAC"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "BCA"; c = "BAC"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+       s = "MFZEIGKH"; c = "MFEIGHKZ"; strcpy(data, s); strcpy(chk, c); e = check_iter_vs_fixed(data, chk, strlen(data)); if (e) return e;
+
+
 	return NULL;
 
 }
-/*
-
-              M
-      F              Z
-E         I
-       G     K
-	H
-*/
