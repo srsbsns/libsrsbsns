@@ -24,7 +24,6 @@ struct bintree {
 
 static void bintree_rclear(struct bt_node *n);
 static struct bt_node* bintree_nodefind(bintree_t t, void *data);
-static void bintree_swapnode(struct bt_node *a, struct bt_node *b);
 static void bintree_rbalance(bintree_t t, void **src, size_t start, size_t end);
 static void rtrav_preorder(struct bt_node *n, void **dest, size_t *i);
 static void rtrav_inorder(struct bt_node *n, void **dest, size_t *i);
@@ -221,14 +220,6 @@ bintree_remove(bintree_t t, void *data)
 
 	t->count--;
 	return true;
-}
-
-static void
-bintree_swapnode(struct bt_node *a, struct bt_node *b)
-{
-	void *data = a->data;
-	a->data = b->data;
-	b->data = data;
 }
 
 static void
