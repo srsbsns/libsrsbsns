@@ -1,4 +1,4 @@
-/* bintree.c - (C) 2012, Emir Marincic, Timo Buhrmester
+/* bintree.c - (C) 2014, Emir Marincic, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 

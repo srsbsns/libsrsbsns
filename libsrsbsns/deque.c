@@ -1,4 +1,4 @@
-/* deque.c - (C) 2012, Emir Marincic
+/* deque.c - (C) 2014, Emir Marincic
 * libsrsbsns - A srs lib
 * See README for contact-, COPYING for license information. */
 
