@@ -175,6 +175,10 @@ bintree_remove(bintree_t t, void *data)
 		n->left = n->right = NULL;
 		if (root)
 			t->root = NULL;
+		else if (left)
+			n->parent->left = NULL;
+		else
+			n->parent->right = NULL;
 	} else if (!n->left || !n->right) {
 		struct bt_node *child = !n->left ? n->right : n->left;
 		if (root) {
