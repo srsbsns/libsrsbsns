@@ -160,8 +160,13 @@ deque_peekback(deque_t d)
 void
 deque_dump(deque_t d, deque_dump_fn dfn)
 {
-	fprintf(stderr, "deque %p [nelem: %zu, front: %zu, back: %zu]:\n",
-	    d, d->nelem, d->front, d->back);
+	if (!d) {
+		fprintf(stderr, "(not a) deque %p\n", d);
+		return;
+	}
+		
+	fprintf(stderr, "deque %p [nelem: %zu, count: %zu front: %zu, back: %zu]:\n",
+	    d, d->nelem, deque_count(d), d->front, d->back);
 	
 	if (d->back == d->front)
 		fputs("[deque is empty]", stderr);
