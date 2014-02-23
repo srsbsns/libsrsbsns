@@ -58,8 +58,9 @@ deque_pushfront(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if (d->front >= d->nelem && !deque_grow(d))
-		return false;
+	while (d->front >= d->nelem)
+		if (!deque_grow(d))
+			return false;
 		
 	d->data[d->front++] = data;
 	return true;
