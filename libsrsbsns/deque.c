@@ -31,7 +31,11 @@ deque_init(int initsize)
 void
 deque_dispose(deque_t d)
 {
+	if (!d)
+		return;
+
 	free(d->data);
+	free(d);
 }
 
 void
