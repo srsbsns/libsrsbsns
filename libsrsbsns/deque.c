@@ -92,7 +92,7 @@ deque_grow(deque_t d)
 	memcpy(newloc + offset, d->data, d->size * sizeof *d->data);
 	free(d->data);
 	d->data = newloc;
-	d->front = offset + numelem;
+	d->front = offset + deque_count(d);
 	d->back = offset;
 	d->size *= 2;
 	return true;
