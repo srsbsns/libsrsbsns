@@ -15,7 +15,7 @@ struct deque {
 	size_t front;
 };
 
-static bool deque_grow(deque_t d);
+static bool deque_resize(deque_t d, size_t newsz);
 
 deque_t
 deque_init(size_t initsize)
@@ -59,7 +59,7 @@ deque_pushfront(deque_t d, void* data)
 		return false;
 
 	while (d->front >= d->nelem)
-		if (!deque_grow(d))
+		if (!deque_resize(d, d->nelem*2))
 			return false;
 
 	d->data[d->front++] = data;
@@ -73,7 +73,7 @@ deque_pushback(deque_t d, void* data)
 		return false;
 
 	while (d->back == 0)
-		if (!deque_grow(d))
+		if (!deque_resize(d, d->nelem*2))
 			return false;
 
 	d->data[--d->back] = data;
@@ -81,17 +81,18 @@ deque_pushback(deque_t d, void* data)
 }
 
 static bool
-deque_grow(deque_t d)
+deque_resize(deque_t d, size_t newsz)
 {
-	size_t newsz = d->nelem * 2;
 	if (!newsz)
 		newsz = 1;
+	size_t count = deque_count(d);
+	if (newsz < count)
+		return false;
 
 	void **newloc = malloc(newsz * sizeof *newloc);
 	if (!newloc)
 		return false;
 
-	size_t count = deque_count(d);
 	size_t newback = (newsz - count)/2;
 
 	memcpy(&newloc[newback], &d->data[d->back], count * sizeof *newloc);
@@ -104,13 +105,13 @@ deque_grow(deque_t d)
 	return true;
 }
 
-void
-deque_shrink(deque_t d)
+bool
+deque_shrink(deque_t d, double countfac)
 {
-	size_t numelem = d->front - d->back + 1;
-	d->data = realloc(d->data, sizeof d->data * numelem);
-	d->front = numelem;
-	d->back = 0;
+	if (!d || countfac < 1.0)
+		return false;
+		
+	return deque_resize(d, (size_t)(countfac * deque_count(d)));
 }
 
 void*
