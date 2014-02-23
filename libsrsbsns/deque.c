@@ -144,13 +144,13 @@ deque_popback(deque_t d)
 void*
 deque_peekfront(deque_t d)
 {
-	return d->data[d->front];
+	return d->front == d->back ? NULL : d->data[d->front-1];
 }
 
 void*
 deque_peekback(deque_t d)
 {
-	return d->data[d->back];
+	return d->front == d->back ? NULL : d->data[d->back];
 }
 
 void
