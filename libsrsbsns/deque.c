@@ -18,7 +18,7 @@ struct deque {
 static bool deque_grow(deque_t d);
 
 deque_t
-deque_init(int initsize)
+deque_init(size_t initsize)
 {
 	struct deque *d = malloc(sizeof *d);
 	d->data = malloc(sizeof *d->data * initsize);

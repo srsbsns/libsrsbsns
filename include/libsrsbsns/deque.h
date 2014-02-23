@@ -7,7 +7,7 @@
 typedef struct deque *deque_t;
 typedef void (*deque_dump_fn)(void *elem);
 
-deque_t deque_init(int initsize);
+deque_t deque_init(size_t initsize);
 void deque_dispose(deque_t d);
 void deque_clear(deque_t d);
 size_t deque_count(deque_t d);
