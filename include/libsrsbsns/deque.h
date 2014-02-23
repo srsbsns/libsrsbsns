@@ -12,5 +12,6 @@ void deque_clear(deque_t d);
 size_t deque_count(deque_t d);
 bool deque_pushfront(deque_t d, void* data);
 bool deque_pushback(deque_t d, void* data);
+void deque_shrink(deque_t d);
 void* deque_popfront(deque_t d);
 void* deque_popback(deque_t d);

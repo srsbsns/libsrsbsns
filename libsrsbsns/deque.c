@@ -89,6 +89,15 @@ deque_grow(deque_t d)
 	return true;
 }
 
+void
+deque_shrink(deque_t d)
+{
+	size_t numelem = d->front - d->back + 1;
+	d->data = realloc(d->data, sizeof d->data * numelem);
+	d->front = numelem;
+	d->back = 0;
+}
+
 void*
 deque_popfront(deque_t d)
 {
