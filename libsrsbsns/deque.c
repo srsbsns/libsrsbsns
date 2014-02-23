@@ -136,6 +136,18 @@ deque_popback(deque_t d)
 	return ret;
 }
 
+void*
+deque_peekfront(deque_t d)
+{
+	return d->data[d->front];
+}
+
+void*
+deque_peekback(deque_t d)
+{
+	return d->data[d->back];
+}
+
 void
 deque_dump(deque_t d, deque_dump_fn dfn)
 {
