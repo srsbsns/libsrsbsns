@@ -13,6 +13,7 @@ struct deque {
 	void **data;
 	size_t back;
 	size_t front;
+	size_t iter;
 };
 
 static bool deque_resize(deque_t d, size_t newsz);
@@ -152,6 +153,30 @@ void*
 deque_peekback(deque_t d)
 {
 	return d->front == d->back ? NULL : d->data[d->back];
+}
+
+void*
+deque_first(deque_t d, bool side)
+{
+	if(!d)
+		return NULL;
+	if(side)
+		d->iter = d->front;
+	else
+		d->iter = d->back;
+	return d->data[d->iter];
+}
+
+void*
+deque_next(deque_t d, bool direction)
+{
+	if(!d || (d->iter < d->back || d->iter > d->front))
+		return NULL;
+	if(direction)
+		d->iter--;
+	else
+		d->iter++;
+	return d->data[d->iter];
 }
 
 void

@@ -18,4 +18,6 @@ void* deque_popfront(deque_t d);
 void* deque_popback(deque_t d);
 void* deque_peekfront(deque_t d);
 void* deque_peekback(deque_t d);
+void* deque_first(deque_t d, bool side);
+void* deque_next(deque_t d, bool direction);
 void deque_dump(deque_t d, deque_dump_fn dfn);
