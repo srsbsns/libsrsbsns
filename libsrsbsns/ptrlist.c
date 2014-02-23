@@ -1,4 +1,4 @@
-/* ptrlist.c - (C) 2012, Timo Buhrmester
+/* ptrlist.c - (C) 2014, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 

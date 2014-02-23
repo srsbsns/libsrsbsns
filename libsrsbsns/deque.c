@@ -1,4 +1,4 @@
-/* deque.c - (C) 2014, Emir Marincic
+/* deque.c - (C) 2014, Emir Marincic, Timo Buhrmester
 * libsrsbsns - A srs lib
 * See README for contact-, COPYING for license information. */
 
@@ -55,13 +55,13 @@ deque_count(deque_t d)
 bool
 deque_pushfront(deque_t d, void* data)
 {
-	if(!d)
+	if (!d)
 		return false;
 
 	while (d->front >= d->nelem)
 		if (!deque_grow(d))
 			return false;
-		
+
 	d->data[d->front++] = data;
 	return true;
 }
@@ -69,7 +69,7 @@ deque_pushfront(deque_t d, void* data)
 bool
 deque_pushback(deque_t d, void* data)
 {
-	if(!d)
+	if (!d)
 		return false;
 
 	while (d->back == 0)
@@ -88,7 +88,7 @@ deque_grow(deque_t d)
 		newsz = 1;
 
 	void **newloc = malloc(newsz * sizeof *newloc);
-	if(!newloc)
+	if (!newloc)
 		return false;
 
 	size_t count = deque_count(d);
@@ -116,7 +116,7 @@ deque_shrink(deque_t d)
 void*
 deque_popfront(deque_t d)
 {
-	if(!d || d->back == d->front)
+	if (!d || d->back == d->front)
 		return NULL;
 
 	void *ret = d->data[--d->front];
@@ -130,7 +130,7 @@ deque_popfront(deque_t d)
 void*
 deque_popback(deque_t d)
 {
-	if(!d || d->back == d->front) 
+	if (!d || d->back == d->front)
 		return NULL;
 
 	void *ret = d->data[d->back++];
@@ -160,10 +160,10 @@ deque_dump(deque_t d, deque_dump_fn dfn)
 		fprintf(stderr, "(not a) deque %p\n", d);
 		return;
 	}
-		
+
 	fprintf(stderr, "deque %p [nelem: %zu, count: %zu front: %zu, back: %zu]:\n",
 	    d, d->nelem, deque_count(d), d->front, d->back);
-	
+
 	if (d->back == d->front)
 		fputs("[deque is empty]", stderr);
 	else
