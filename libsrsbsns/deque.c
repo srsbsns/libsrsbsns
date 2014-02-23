@@ -74,7 +74,7 @@ deque_pushback(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if(d->back - 1 < 0)
+	if(d->back == 0)
 		if(!deque_grow(d))
 			return false;
 	d->back--;
