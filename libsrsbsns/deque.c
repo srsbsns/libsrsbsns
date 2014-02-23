@@ -91,20 +91,15 @@ deque_grow(deque_t d)
 	if(!newloc)
 		return false;
 
-	size_t newback = (newsz - deque_count(d))/2;
-	size_t newfront = newback;
-	for (size_t i = d->back; i < d->front; i++)
-		newloc[newfront++] = d->data[i];
-	
-	//size_t offset = (newsz * sizeof *d->data - deque_count(d))/2;
-	//memcpy(newloc + offset, d->data, d->nelem * sizeof *d->data);
+	size_t count = deque_count(d);
+	size_t newback = (newsz - count)/2;
+
+	memcpy(&newloc[newback], &d->data[d->back], count * sizeof *newloc);
 
 	free(d->data);
 	d->data = newloc;
 	d->back = newback;
-	d->front = newfront;
-	//d->front = offset + deque_count(d);
-	//d->back = offset;
+	d->front = newback + count;
 	d->nelem = newsz;
 	return true;
 }
