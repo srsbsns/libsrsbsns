@@ -32,7 +32,7 @@ test_pushpop(void)
 	deque_dump(d, idump);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	for (size_t i = 0; i < COUNTOF(ia); i++)
-		if (!deque_pushback(d, &i))
+		if (!deque_pushback(d, &ia[i]))
 			return "pushback failed";
 	deque_dump(d, idump);
 	
@@ -52,7 +52,7 @@ test_pushpop(void)
 		return "deque supposed to be empty but it's not";
 
 	for (size_t i = 0; i < COUNTOF(ia); i++)
-		if (!deque_pushback(d, &i))
+		if (!deque_pushback(d, &ia[i]))
 			return "pushback failed (2)";
 	
 	if (deque_count(d) != COUNTOF(ia))
@@ -70,7 +70,7 @@ test_pushpop(void)
 		return "deque supposed to be empty but it's not (2)";
 
 	for (size_t i = 0; i < COUNTOF(ia); i++)
-		if (!deque_pushfront(d, &i))
+		if (!deque_pushfront(d, &ia[i]))
 			return "pushfront failed";
 	
 	if (deque_count(d) != COUNTOF(ia))
@@ -88,7 +88,7 @@ test_pushpop(void)
 		return "deque supposed to be empty but it's not (3)";
 
 	for (size_t i = 0; i < COUNTOF(ia); i++)
-		if (!deque_pushfront(d, &i))
+		if (!deque_pushfront(d, &ia[i]))
 			return "pushfront failed (2)";
 	
 	if (deque_count(d) != COUNTOF(ia))
