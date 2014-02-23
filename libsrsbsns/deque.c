@@ -44,7 +44,7 @@ deque_clear(deque_t d)
 size_t
 deque_count(deque_t d)
 {
-	return d->front - d->back + 1;
+	return d->back > d->front ? 0 : d->front - d->back + 1;
 }
 
 bool
