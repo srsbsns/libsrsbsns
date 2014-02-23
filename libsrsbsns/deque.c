@@ -85,12 +85,11 @@ deque_pushback(deque_t d, void* data)
 static bool
 deque_grow(deque_t d)
 {
-	void **newloc = malloc(sizeof **newloc * d->size*2);
+	void **newloc = malloc(sizeof *newloc * d->size*2);
 	if(!newloc)
 		return false;
-	size_t numelem = d->front - d->back + 1;
-	size_t offset = (d->size * 2 * sizeof d->data - numelem)/2;
-	memcpy(newloc + offset, d->data, d->size * sizeof d->data);
+	size_t offset = (d->size * 2 * sizeof *d->data - deque_count(d))/2;
+	memcpy(newloc + offset, d->data, d->size * sizeof *d->data);
 	free(d->data);
 	d->data = newloc;
 	d->front = offset + numelem;
