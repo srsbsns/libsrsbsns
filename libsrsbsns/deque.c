@@ -12,6 +12,8 @@ struct deque {
 	size_t front;
 };
 
+static bool deque_grow(deque_t d);
+
 deque_t
 deque_init(int initsize)
 {
@@ -23,7 +25,24 @@ deque_init(int initsize)
 	return d;
 }
 
-static bool deque_grow(deque_t d);
+void
+deque_dispose(deque_t d)
+{
+	free(d->data);
+}
+
+void
+deque_clear(deque_t d)
+{
+	d->back = d->front = d->size/2;
+	d->front--;
+}
+
+size_t
+deque_count(deque_t d)
+{
+	return d->front - d->back + 1;
+}
 
 bool
 deque_pushfront(deque_t d, void* data)
