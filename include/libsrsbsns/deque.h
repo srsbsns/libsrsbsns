@@ -16,4 +16,6 @@ bool deque_pushback(deque_t d, void* data);
 bool deque_shrink(deque_t d, double countfac);
 void* deque_popfront(deque_t d);
 void* deque_popback(deque_t d);
+void* deque_peekfront(deque_t d);
+void* deque_peekback(deque_t d);
 void deque_dump(deque_t d, deque_dump_fn dfn);
