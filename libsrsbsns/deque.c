@@ -24,7 +24,6 @@ deque_init(size_t initsize)
 	d->data = malloc(sizeof *d->data * initsize);
 	d->size = initsize;
 	d->back = d->front = d->size/2;
-	d->back++;
 	return d;
 }
 
@@ -45,13 +44,12 @@ deque_clear(deque_t d)
 		return;
 
 	d->back = d->front = d->size/2;
-	d->front--;
 }
 
 size_t
 deque_count(deque_t d)
 {
-	return d->back > d->front ? 0 : d->front - d->back + 1;
+	return d->front - d->back;
 }
 
 bool
@@ -60,11 +58,10 @@ deque_pushfront(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if(d->front + 1 > d->size)
-		if(!deque_grow(d))
-			return false;
-	d->front++;
-	d->data[d->front] = data;
+	if (d->front >= d->size && !deque_grow(d))
+		return false;
+		
+	d->data[d->front++] = data;
 	return true;
 }
 
@@ -110,29 +107,28 @@ deque_shrink(deque_t d)
 void*
 deque_popfront(deque_t d)
 {
-	if(!d || d->back > d->front)
+	if(!d || d->back == d->front)
 		return NULL;
 
-	void *ret = d->data[d->front];
-	d->data[d->front] = NULL;
-	if(d->front != 0)
-		d->front--;
-	else
-		deque_clear(d);
+	void *ret = d->data[--d->front];
+
+	if (d->front == d->back)
+		deque_clear(d); //recenter
+
 	return ret;
 }
 
 void*
 deque_popback(deque_t d)
 {
-	if(!d || d->back > d->front) 
+	if(!d || d->back == d->front) 
 		return NULL;
 
-	void *ret = d->data[d->back];
-	d->data[d->back] = NULL;
-	d->back++;
-	if (d->back > d->front)
-		deque_clear(d);
+	void *ret = d->data[d->back++];
+
+	if (d->front == d->back)
+		deque_clear(d); //recenter
+
 	return ret;
 }
 
@@ -154,10 +150,10 @@ deque_dump(deque_t d, deque_dump_fn dfn)
 	fprintf(stderr, "deque %p [size: %zu, front: %zu, back: %zu]:\n",
 	    d, d->size, d->front, d->back);
 	
-	if (d->back > d->front)
+	if (d->back == d->front)
 		fputs("[deque is empty]", stderr);
 	else
-		for (size_t i = d->back; i <= d->front; i++) {
+		for (size_t i = d->back; i < d->front; i++) {
 			fputs(i == d->back ? "data: " : ", ", stderr);
 			dfn(d->data[i]);
 		}
