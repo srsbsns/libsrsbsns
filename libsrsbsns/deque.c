@@ -9,7 +9,7 @@
 #include <libsrsbsns/deque.h>
 
 struct deque {
-	size_t size;
+	size_t nelem;
 	void **data;
 	size_t back;
 	size_t front;
@@ -22,8 +22,8 @@ deque_init(size_t initsize)
 {
 	struct deque *d = malloc(sizeof *d);
 	d->data = malloc(sizeof *d->data * initsize);
-	d->size = initsize;
-	d->back = d->front = d->size/2;
+	d->nelem = initsize;
+	d->back = d->front = d->nelem/2;
 	return d;
 }
 
@@ -43,7 +43,7 @@ deque_clear(deque_t d)
 	if (!d)
 		return;
 
-	d->back = d->front = d->size/2;
+	d->back = d->front = d->nelem/2;
 }
 
 size_t
@@ -58,7 +58,7 @@ deque_pushfront(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if (d->front >= d->size && !deque_grow(d))
+	if (d->front >= d->nelem && !deque_grow(d))
 		return false;
 		
 	d->data[d->front++] = data;
@@ -82,16 +82,16 @@ deque_pushback(deque_t d, void* data)
 static bool
 deque_grow(deque_t d)
 {
-	void **newloc = malloc(sizeof *newloc * d->size*2);
+	void **newloc = malloc(sizeof *newloc * d->nelem*2);
 	if(!newloc)
 		return false;
-	size_t offset = (d->size * 2 * sizeof *d->data - deque_count(d))/2;
-	memcpy(newloc + offset, d->data, d->size * sizeof *d->data);
+	size_t offset = (d->nelem * 2 * sizeof *d->data - deque_count(d))/2;
+	memcpy(newloc + offset, d->data, d->nelem * sizeof *d->data);
 	free(d->data);
 	d->data = newloc;
 	d->front = offset + deque_count(d);
 	d->back = offset;
-	d->size *= 2;
+	d->nelem *= 2;
 	return true;
 }
 
@@ -147,8 +147,8 @@ deque_peekback(deque_t d)
 void
 deque_dump(deque_t d, deque_dump_fn dfn)
 {
-	fprintf(stderr, "deque %p [size: %zu, front: %zu, back: %zu]:\n",
-	    d, d->size, d->front, d->back);
+	fprintf(stderr, "deque %p [nelem: %zu, front: %zu, back: %zu]:\n",
+	    d, d->nelem, d->front, d->back);
 	
 	if (d->back == d->front)
 		fputs("[deque is empty]", stderr);
