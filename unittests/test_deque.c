@@ -51,6 +51,11 @@ test_pushpop(void)
 	if (deque_count(d) != 0)
 		return "deque supposed to be empty but it's not";
 
+	if (deque_popback(d))
+		return "popback didn't fail when it should (1)";
+	if (deque_popfront(d))
+		return "popfront didn't fail when it should (1)";
+
 	for (size_t i = 0; i < COUNTOF(ia); i++)
 		if (!deque_pushback(d, &ia[i]))
 			return "pushback failed (2)";
@@ -68,6 +73,11 @@ test_pushpop(void)
 
 	if (deque_count(d) != 0)
 		return "deque supposed to be empty but it's not (2)";
+
+	if (deque_popback(d))
+		return "popback didn't fail when it should (2)";
+	if (deque_popfront(d))
+		return "popfront didn't fail when it should (2)";
 
 	for (size_t i = 0; i < COUNTOF(ia); i++)
 		if (!deque_pushfront(d, &ia[i]))
@@ -94,6 +104,11 @@ test_pushpop(void)
 	if (deque_count(d) != COUNTOF(ia))
 		return "wrong count after pushfront (2)";
 
+	if (deque_popback(d))
+		return "popback didn't fail when it should (3)";
+	if (deque_popfront(d))
+		return "popfront didn't fail when it should (3)";
+
 	for (size_t i = 0; i < COUNTOF(ia); i++) {
 		if (!(e = deque_popfront(d)))
 			return "popfront failed (2)";
@@ -104,6 +119,11 @@ test_pushpop(void)
 
 	if (deque_count(d) != 0)
 		return "deque supposed to be empty but it's not (4)";
+
+	if (deque_popback(d))
+		return "popback didn't fail when it should (4)";
+	if (deque_popfront(d))
+		return "popfront didn't fail when it should (4)";
 
 	deque_dispose(d);
 
