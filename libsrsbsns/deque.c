@@ -71,27 +71,40 @@ deque_pushback(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if(d->back == 0)
-		if(!deque_grow(d))
+	while (d->back == 0)
+		if (!deque_grow(d))
 			return false;
-	d->back--;
-	d->data[d->back] = data;
+
+	d->data[--d->back] = data;
 	return true;
 }
 
 static bool
 deque_grow(deque_t d)
 {
-	void **newloc = malloc(sizeof *newloc * d->nelem*2);
+	size_t newsz = d->nelem * 2;
+	if (!newsz)
+		newsz = 1;
+
+	void **newloc = malloc(newsz * sizeof *newloc);
 	if(!newloc)
 		return false;
-	size_t offset = (d->nelem * 2 * sizeof *d->data - deque_count(d))/2;
-	memcpy(newloc + offset, d->data, d->nelem * sizeof *d->data);
+
+	size_t newback = (newsz - deque_count(d))/2;
+	size_t newfront = newback;
+	for (size_t i = d->back; i < d->front; i++)
+		newloc[newfront++] = d->data[i];
+	
+	//size_t offset = (newsz * sizeof *d->data - deque_count(d))/2;
+	//memcpy(newloc + offset, d->data, d->nelem * sizeof *d->data);
+
 	free(d->data);
 	d->data = newloc;
-	d->front = offset + deque_count(d);
-	d->back = offset;
-	d->nelem *= 2;
+	d->back = newback;
+	d->front = newfront;
+	//d->front = offset + deque_count(d);
+	//d->back = offset;
+	d->nelem = newsz;
 	return true;
 }
 
