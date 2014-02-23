@@ -41,6 +41,9 @@ deque_dispose(deque_t d)
 void
 deque_clear(deque_t d)
 {
+	if (!d)
+		return;
+
 	d->back = d->front = d->size/2;
 	d->front--;
 }
