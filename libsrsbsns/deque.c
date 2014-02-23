@@ -156,7 +156,7 @@ deque_peekback(deque_t d)
 }
 
 void*
-deque_first(deque_t d, bool side)
+deque_first(deque_t d, bool front)
 {
 	if(!d)
 		return NULL;
@@ -168,7 +168,7 @@ deque_first(deque_t d, bool side)
 }
 
 void*
-deque_next(deque_t d, bool direction)
+deque_next(deque_t d, bool forwards)
 {
 	if(!d || (d->iter < d->back || d->iter > d->front))
 		return NULL;
