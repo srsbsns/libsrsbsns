@@ -86,6 +86,7 @@ deque_resize(deque_t d, size_t newsz)
 {
 	if (!newsz)
 		newsz = 1;
+
 	size_t count = deque_count(d);
 	if (newsz < count)
 		return false;
@@ -158,25 +159,19 @@ deque_peekback(deque_t d)
 void*
 deque_first(deque_t d, bool front)
 {
-	if(!d)
+	if (!d || d->front == d->back)
 		return NULL;
-	if(side)
-		d->iter = d->front;
-	else
-		d->iter = d->back;
-	return d->data[d->iter];
+
+	return d->data[d->iter = front ? d->front : d->back];
 }
 
 void*
 deque_next(deque_t d, bool forwards)
 {
-	if(!d || (d->iter < d->back || d->iter > d->front))
+	if (!d || (d->iter < d->back || d->iter > d->front))
 		return NULL;
-	if(direction)
-		d->iter--;
-	else
-		d->iter++;
-	return d->data[d->iter];
+
+	return d->data[d->iter += forwards ? 1 : -1];
 }
 
 void
