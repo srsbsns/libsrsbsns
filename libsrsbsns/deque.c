@@ -24,7 +24,7 @@ deque_init(int initsize)
 	d->data = malloc(sizeof *d->data * initsize);
 	d->size = initsize;
 	d->back = d->front = d->size/2;
-	d->front--;
+	d->back++;
 	return d;
 }
 
