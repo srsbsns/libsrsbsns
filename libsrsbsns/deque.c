@@ -21,7 +21,7 @@ deque_t
 deque_init(int initsize)
 {
 	struct deque *d = malloc(sizeof *d);
-	d->data = malloc(sizeof d->data * initsize);
+	d->data = malloc(sizeof *d->data * initsize);
 	d->size = initsize;
 	d->back = d->front = d->size/2;
 	d->front--;
