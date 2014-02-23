@@ -131,6 +131,8 @@ deque_popback(deque_t d)
 	void *ret = d->data[d->back];
 	d->data[d->back] = NULL;
 	d->back++;
+	if (d->back > d->front)
+		deque_clear(d);
 	return ret;
 }
 
