@@ -28,7 +28,7 @@ test_basic(void)
 const char* /*UNITTEST*/
 test_pushpop(void)
 {
-	deque_t d = deque_init(10);
+	deque_t d = deque_init(20);
 	deque_dump(d, idump);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	for (size_t i = 0; i < COUNTOF(ia); i++)
@@ -107,7 +107,7 @@ test_pushpop(void)
 
 	deque_dispose(d);
 
-	return "unit test not implemented";
+	return NULL;
 }
 
 const char* /*UNITTEST*/
