@@ -115,7 +115,10 @@ deque_popfront(deque_t d)
 
 	void *ret = d->data[d->front];
 	d->data[d->front] = NULL;
-	d->front--;
+	if(d->front != 0)
+		d->front--;
+	else
+		deque_clear(d);
 	return ret;
 }
 
