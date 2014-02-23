@@ -1,6 +1,9 @@
 #!/bin/sh
 
-#needs curl and git
+#needs curl and git and icat (libsrsirc)
+#before starting this, run in another terminal session something like:
+# touch /tmp/githook.inp
+# stdbuf -i0 -o0 tail -F /tmp/githook.inp | stdbuf -i0 -o0 icat -vvv -krS -nGitHooker -ugh -fgh -F8 -W 30 -b 60 -T 30 -C '#channel,chankey' -w 3 -l 2 -L 0 irc.quakenet.org
 
 lastfile=/tmp/githook.last
 newfile=/tmp/githook.new
