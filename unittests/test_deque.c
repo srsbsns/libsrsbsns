@@ -8,6 +8,11 @@
 
 #define COUNTOF(ARR) (sizeof (ARR) / sizeof (ARR)[0])
 
+void idump(void *e)
+{
+	fprintf(stderr, "``%d''", *(int*)e);
+}
+
 const char* /*UNITTEST*/
 test_basic(void)
 {
@@ -24,10 +29,12 @@ const char* /*UNITTEST*/
 test_pushpop(void)
 {
 	deque_t d = deque_init(10);
+	deque_dump(d, idump);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	for (size_t i = 0; i < COUNTOF(ia); i++)
 		if (!deque_pushback(d, &i))
 			return "pushback failed";
+	deque_dump(d, idump);
 	
 	if (deque_count(d) != COUNTOF(ia))
 		return "wrong count after pushback";

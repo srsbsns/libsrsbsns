@@ -3,6 +3,9 @@
 * See README for contact-, COPYING for license information. */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <libsrsbsns/deque.h>
 
 struct deque {
@@ -120,4 +123,21 @@ deque_popback(deque_t d)
 	d->data[d->back] = NULL;
 	d->back++;
 	return ret;
+}
+
+void
+deque_dump(deque_t d, deque_dump_fn dfn)
+{
+	fprintf(stderr, "deque %p [size: %zu, front: %zu, back: %zu]:\n",
+	    d, d->size, d->front, d->back);
+	
+	if (d->back > d->front)
+		fputs("[deque is empty]", stderr);
+	else
+		for (size_t i = d->back; i <= d->front; i++) {
+			fputs(i == d->back ? "data: " : ", ", stderr);
+			dfn(d->data[i]);
+		}
+
+	fputs("\n", stderr);
 }

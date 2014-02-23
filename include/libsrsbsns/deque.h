@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 typedef struct deque *deque_t;
+typedef void (*deque_dump_fn)(void *elem);
 
 deque_t deque_init(int initsize);
 void deque_dispose(deque_t d);
@@ -15,3 +16,4 @@ bool deque_pushback(deque_t d, void* data);
 void deque_shrink(deque_t d);
 void* deque_popfront(deque_t d);
 void* deque_popback(deque_t d);
+void deque_dump(deque_t d, deque_dump_fn dfn);
