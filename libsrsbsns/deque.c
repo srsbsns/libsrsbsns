@@ -110,7 +110,7 @@ deque_shrink(deque_t d)
 void*
 deque_popfront(deque_t d)
 {
-	if(!d || d->front > d->back)
+	if(!d || d->back > d->front)
 		return NULL;
 
 	void *ret = d->data[d->front];
