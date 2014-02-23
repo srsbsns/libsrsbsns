@@ -50,7 +50,7 @@ deque_pushfront(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if(!d->data[d->front + 1])
+	if(d->front + 1 > d->size)
 		if(!deque_grow(d))
 			return false;
 	d->front++;
@@ -64,7 +64,7 @@ deque_pushback(deque_t d, void* data)
 	if(!d)
 		return false;
 
-	if(!d->data[d->back - 1])
+	if(d->back - 1 < 0)
 		if(!deque_grow(d))
 			return false;
 	d->back--;
