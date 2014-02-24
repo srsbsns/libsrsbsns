@@ -136,8 +136,8 @@ downheap(heap_t h, size_t node)
 		size_t r = right(node);
 		M("new iteration; node: %zu, left: %zu, right: %zu\n", node, l, r);
 
-		if (l >= h->treesz) {
-			M("...would exceed tree storage, done here\n");
+		if (l >= h->next) {
+			//M("...no elements past next, done here\n");
 			break;
 		}
 
