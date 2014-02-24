@@ -43,20 +43,21 @@ const char* /*UNITTEST*/
 test_insert(void)
 {
 	heap_t mp = heap_init(icmp);
-	int ia[10];
+	int ia[1000];
 	int ib[COUNTOF(ia)];
 	int ic[COUNTOF(ia)];
 	for (size_t i = 0; i < COUNTOF(ia); i++) {
-		ia[i] = ib[i] = ((rand()>>3)%200);
+		ia[i] = ib[i] = ((rand()>>3)%COUNTOF(ia));
 		heap_insert(mp, &ia[i]);
 	}
-	heap_dump(mp, idump);
+
+	//heap_dump(mp, idump);
+
 	int *x;
 	for (size_t i = 0; i < COUNTOF(ia); i++) {
 		if (!(x = heap_remove(mp)))
 			return "remove failed";
 		ic[i] = *x;
-		fprintf(stderr, "pop: %d\n", ic[i]);
 	}
 
 	if ((x = heap_remove(mp)))

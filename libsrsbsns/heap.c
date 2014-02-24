@@ -130,11 +130,13 @@ static void
 downheap(heap_t h, size_t node)
 {
 	#define M(F,A...) fprintf(stderr, F, ##A)
-	M("downheap, initial node %zu!\n", node);
+	//M("\n");
+	//M("===========downheap================, initial node %zu!\n", node);
 	for (;;) {
 		size_t l = left(node);
 		size_t r = right(node);
-		M("new iteration; node: %zu, left: %zu, right: %zu\n", node, l, r);
+		//M("new iteration; node: %zu, left: %zu, right: %zu\n", node, l, r);
+		//heap_dump(h, idump);
 
 		if (l >= h->next) {
 			//M("...no elements past next, done here\n");
@@ -146,8 +148,8 @@ downheap(heap_t h, size_t node)
 
 		bool badleft = hasleft && h->cmpfn(h->tree[l], h->tree[node]) < 0;
 		bool badright = hasright && h->cmpfn(h->tree[r], h->tree[node]) < 0;
-		M("hasl: %d, hasr: %d, badl: %d, badr: %d\n",
-		    hasleft, hasright, badleft, badright);
+		//M("hasl: %d, hasr: %d, badl: %d, badr: %d\n",
+		    //hasleft, hasright, badleft, badright);
 
 
 		size_t n;
@@ -159,7 +161,7 @@ downheap(heap_t h, size_t node)
 		} else
 			break;
 
-		M("swapping %zu and %zu\n", node, n);
+		//M("swapping %zu and %zu\n", node, n);
 		swap(h, node, n);
 		node = n;
 	}
@@ -206,7 +208,8 @@ heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
 		fputs("  ", stderr);
 	fputs("``", stderr);
 	df(h->tree[node]);
-	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", h->tree[node], h->tree[parent(node)]);
+	fprintf(stderr, "'' [%zu; %12.12p (p:%12.12p: ``",
+	    node, h->tree[node], h->tree[parent(node)]);
 	if (node)
 		df(h->tree[parent(node)]);
 	else
