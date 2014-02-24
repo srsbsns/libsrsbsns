@@ -22,4 +22,6 @@ void heap_dispose(heap_t h);
 size_t heap_count(heap_t h);
 void heap_dump(heap_t h, heap_dump_fn dfn);
 
+void* heap_remove(heap_t h);
+
 #endif /* LIBSRSBSNS_HEAP_H */

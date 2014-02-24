@@ -10,6 +10,12 @@
 #define COUNTOF(ARR) (sizeof (ARR) / sizeof (ARR)[0])
 
 int
+icmpc(const void *e1, const void *e2)
+{
+	return *(const int*)e1 - *(const int*)e2;
+}
+
+int
 icmp(void *e1, void *e2)
 {
 	return *(int*)e1 - *(int*)e2;
@@ -37,12 +43,30 @@ const char* /*UNITTEST*/
 test_insert(void)
 {
 	heap_t mp = heap_init(icmp);
-	int ia[100];
-	for (int i = 0; i < COUNTOF(ia); i++) {
-		ia[i] = rand();
+	int ia[10];
+	int ib[COUNTOF(ia)];
+	int ic[COUNTOF(ia)];
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		ia[i] = ib[i] = ((rand()>>3)%200);
 		heap_insert(mp, &ia[i]);
 	}
 	heap_dump(mp, idump);
+	int *x;
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		if (!(x = heap_remove(mp)))
+			return "remove failed";
+		ic[i] = *x;
+		fprintf(stderr, "pop: %d\n", ic[i]);
+	}
+
+	if ((x = heap_remove(mp)))
+		return "remove did not fail when it should";
+
+	qsort(ib, COUNTOF(ib), sizeof ib[0], icmpc);
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		if (ib[i] != ic[i])
+			return "wrong result from removing";
+	}
 	
 	heap_dispose(mp);
 

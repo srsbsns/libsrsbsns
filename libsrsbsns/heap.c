@@ -126,6 +126,48 @@ upheap(heap_t h, size_t node)
 }
 
 void
+static void
+downheap(heap_t h, size_t node)
+{
+	#define M(F,A...) fprintf(stderr, F, ##A)
+	M("downheap, initial node %zu!\n", node);
+	for (;;) {
+		size_t l = left(node);
+		size_t r = right(node);
+		M("new iteration; node: %zu, left: %zu, right: %zu\n", node, l, r);
+
+		if (l >= h->treesz) {
+			M("...would exceed tree storage, done here\n");
+			break;
+		}
+
+		bool hasleft = h->tree[l];
+		bool hasright = h->tree[r];
+
+		bool badleft = hasleft && h->cmpfn(h->tree[l], h->tree[node]) < 0;
+		bool badright = hasright && h->cmpfn(h->tree[r], h->tree[node]) < 0;
+		M("hasl: %d, hasr: %d, badl: %d, badr: %d\n",
+		    hasleft, hasright, badleft, badright);
+
+
+		size_t n;
+
+		if (badleft && badright) {
+			n = h->cmpfn(h->tree[l], h->tree[r]) < 0 ? l : r;
+		} else if (badleft || badright) {
+			n =  badleft ? l : r;
+		} else
+			break;
+
+		M("swapping %zu and %zu\n", node, n);
+		swap(h, node, n);
+		node = n;
+	}
+
+	#undef M
+}
+
+void
 heap_insert(heap_t h, void *elem)
 {
 	if (!h)
@@ -135,14 +177,28 @@ heap_insert(heap_t h, void *elem)
 		heap_resize(h, h->treesz*2);
 	
 	h->tree[h->next] = elem;
+	h->count++;
 	upheap(h, h->next++);
 }
 
+void*
+heap_remove(heap_t h)
+{
+	if (!h || h->count == 0)
+		return NULL;
+	
+	void *res = h->tree[0];
+	h->tree[0] = h->tree[--h->next];
+	h->count--;
+	downheap(h, 0);
+
+	return res;
+}
 
 static void
 heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
 {
-	if (node >= h->treesz || !h->tree[node])
+	if (node >= h->treesz || node >= h->next || !h->tree[node])
 		return;
 
 	heap_rdump(h, left(node), depth+1, df);
