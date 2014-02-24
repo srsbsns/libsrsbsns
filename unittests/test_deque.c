@@ -243,5 +243,38 @@ test_grow(void)
 const char* /*UNITTEST*/
 test_iter(void)
 {
-	return "unit test not implemented";
+	deque_t d = deque_init(10);
+	int ia[] = {0,1,2,3,4,5,6,7,8,9};
+
+	for (size_t i = 0; i < COUNTOF(ia); i++)
+		deque_pushfront(d, &ia[i]);
+
+	int *e;
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		e = i ? deque_next(d, true) : deque_first(d, true);
+
+		if (!e)
+			return "first or next failed";
+
+		if (*e != ia[i])
+			return "wrong element while iterating";
+	}
+
+	if (deque_next(d, true))
+		return "deque_next did not fail when it should";
+
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		e = i ? deque_next(d, false) : deque_first(d, false);
+		
+		if (!e)
+			return "first or next failed (2)";
+
+		if (*e != ia[9-i])
+			return "wrong element while iterating (2)";
+	}
+	
+	if (deque_next(d, false))
+		return "deque_next did not fail when it should (2)";
+
+	return NULL;
 }
