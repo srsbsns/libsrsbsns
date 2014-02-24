@@ -63,16 +63,30 @@ heap_count(heap_t h)
 	return !h ? 0 : h->count;
 }
 
-void
-heap_dump(heap_t h, heap_dump_fn dfn)
+static void
+heap_rdump(struct heap_node *n, int depth, heap_dump_fn dfn)
 {
-	#define M(X, A...) fprintf(stderr, X, ##A)
-	M("===heap dump (count: %zu)===\n", h->count);
-	if (!h)
-		M("nullpointer...\n");
+	if (!n)
+		return;
 
-	//...
+	heap_rdump(n->left, depth+1, df);
+	for (int i = 0; i < depth; i++)
+		fputs("  ", stderr);
+	fputs("``", stderr);
+	df(n->data);
+	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", n, n->parent);
+	if (n->parent)
+		df(n->parent->data);
+	else
+		fprintf(stderr, "(root)");
+	fprintf(stderr, "'')]");
+	fputs("\n", stderr);
+	heap_rdump(n->right, depth+1, df);
+}
 
-	M("===end of heap dump===\n");
-	#undef M
+void
+heap_dump(heap_t t, heap_dump_fn dfn)
+{
+	fprintf(stderr, "heap %12.12p:\n", t);
+	heap_rdump(t->root, 0, df);
 }
