@@ -18,6 +18,8 @@ struct heap {
 	size_t treesz;
 	size_t count;
 
+	size_t next;
+
 	heap_cmp_fn cmpfn;
 };
 
@@ -28,6 +30,7 @@ heap_init(heap_cmp_fn cmpfn)
 	if (!h)
 		return NULL;
 	
+	h->cmpfn = cmpfn;
 	h->treesz = 32;
 	h->tree = malloc(h->treesz * sizeof *h->tree);
 
@@ -45,7 +48,7 @@ heap_clear(heap_t h)
 	for(size_t i = 0; i < h->treesz; i++)
 		h->tree[i] = NULL;
 
-	h->count = 0;
+	h->next = h->count = 0;
 }
 
 void
@@ -63,30 +66,103 @@ heap_count(heap_t h)
 	return !h ? 0 : h->count;
 }
 
-static void
-heap_rdump(struct heap_node *n, int depth, heap_dump_fn dfn)
+static bool
+heap_resize(heap_t h, size_t newsz)
 {
-	if (!n)
+	if (!newsz)
+		newsz = 1;
+
+	size_t count = heap_count(h);
+	if (newsz < count)
+		return false;
+
+	void **newloc = realloc(h->tree, newsz * sizeof *newloc);
+	if (!newloc)
+		return false;
+	h->tree = newloc;
+	h->treesz = newsz;
+	return true;
+}
+
+static inline size_t
+parent(size_t node)
+{
+	return (node-1)/2;
+}
+
+static inline size_t
+left(size_t node)
+{
+	return 2*node+1;
+}
+
+static inline size_t
+right(size_t node)
+{
+	return 2*node+2;
+}
+
+static inline void
+swap(heap_t h, size_t n1, size_t n2)
+{
+	void* tmp = h->tree[n1];
+	h->tree[n1] = h->tree[n2];
+	h->tree[n2] = tmp;
+}
+
+static void
+upheap(heap_t h, size_t node)
+{
+	if (!node)
 		return;
 
-	heap_rdump(n->left, depth+1, df);
+	size_t par;
+	while (h->cmpfn(h->tree[node], h->tree[par = parent(node)]) < 0) {
+		swap(h, node, par);
+		node = par;
+		if (par == 0)
+			break;
+	}
+}
+
+void
+heap_insert(heap_t h, void *elem)
+{
+	if (!h)
+		return;
+	
+	if (h->next >= h->treesz)
+		heap_resize(h, h->treesz*2);
+	
+	h->tree[h->next] = elem;
+	upheap(h, h->next++);
+}
+
+
+static void
+heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
+{
+	if (node >= h->treesz || !h->tree[node])
+		return;
+
+	heap_rdump(h, left(node), depth+1, df);
 	for (int i = 0; i < depth; i++)
 		fputs("  ", stderr);
 	fputs("``", stderr);
-	df(n->data);
-	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", n, n->parent);
-	if (n->parent)
-		df(n->parent->data);
+	df(h->tree[node]);
+	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", h->tree[node], h->tree[parent(node)]);
+	if (node)
+		df(h->tree[parent(node)]);
 	else
 		fprintf(stderr, "(root)");
 	fprintf(stderr, "'')]");
 	fputs("\n", stderr);
-	heap_rdump(n->right, depth+1, df);
+	heap_rdump(h, right(node), depth+1, df);
 }
 
 void
-heap_dump(heap_t t, heap_dump_fn dfn)
+heap_dump(heap_t h, heap_dump_fn df)
 {
-	fprintf(stderr, "heap %12.12p:\n", t);
-	heap_rdump(t->root, 0, df);
+	fprintf(stderr, "heap %12.12p:\n", h);
+	heap_rdump(h, 0, 0, df);
 }

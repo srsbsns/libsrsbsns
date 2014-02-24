@@ -15,6 +15,8 @@ typedef void (*heap_dump_fn)(void *elem);
 
 heap_t heap_init(heap_cmp_fn cmpfn);
 
+void heap_insert(heap_t h, void *elem);
+
 void heap_clear(heap_t h);
 void heap_dispose(heap_t h);
 size_t heap_count(heap_t h);
