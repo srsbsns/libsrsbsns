@@ -157,18 +157,19 @@ deque_peekback(deque_t d)
 }
 
 void*
-deque_first(deque_t d, bool front)
+deque_first(deque_t d, bool back)
 {
 	if (!d || d->front == d->back)
 		return NULL;
 
-	return d->data[d->iter = front ? d->front : d->back];
+	return d->data[d->iter = back ? d->back : d->front - 1];
 }
 
 void*
 deque_next(deque_t d, bool forwards)
 {
-	if (!d || (d->iter < d->back || d->iter > d->front))
+	if (!d || !forwards && d->iter <= d->back
+	    || forwards && d->iter + 1 >= d->front)
 		return NULL;
 
 	return d->data[d->iter += forwards ? 1 : -1];
