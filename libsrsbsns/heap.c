@@ -13,6 +13,10 @@
 
 #include <libsrsbsns/heap.h>
 
+#define PARENT(NODE) (((NODE)-1)/2)
+#define LEFT(NODE) (2*(NODE)+1)
+#define RIGHT(NODE) (2*(NODE)+2)
+
 struct heap {
 	void **tree;
 	size_t treesz;
@@ -42,28 +46,20 @@ heap_init(heap_cmp_fn cmpfn)
 void
 heap_clear(heap_t h)
 {
-	if (!h)
-		return;
-
-	for(size_t i = 0; i < h->treesz; i++)
-		h->tree[i] = NULL;
-
 	h->next = h->count = 0;
 }
 
 void
 heap_dispose(heap_t h)
 {
-	if (!h)
-		return;
-
 	free(h->tree);
+	free(h);
 }
 
 size_t
 heap_count(heap_t h)
 {
-	return !h ? 0 : h->count;
+	return h->count;
 }
 
 static bool
@@ -72,34 +68,16 @@ heap_resize(heap_t h, size_t newsz)
 	if (!newsz)
 		newsz = 1;
 
-	size_t count = heap_count(h);
-	if (newsz < count)
+	if (newsz < heap_count(h))
 		return false;
 
 	void **newloc = realloc(h->tree, newsz * sizeof *newloc);
 	if (!newloc)
 		return false;
+
 	h->tree = newloc;
 	h->treesz = newsz;
 	return true;
-}
-
-static inline size_t
-parent(size_t node)
-{
-	return (node-1)/2;
-}
-
-static inline size_t
-left(size_t node)
-{
-	return 2*node+1;
-}
-
-static inline size_t
-right(size_t node)
-{
-	return 2*node+2;
 }
 
 static inline void
@@ -117,7 +95,7 @@ upheap(heap_t h, size_t node)
 		return;
 
 	size_t par;
-	while (h->cmpfn(h->tree[node], h->tree[par = parent(node)]) < 0) {
+	while (h->cmpfn(h->tree[node], h->tree[par = PARENT(node)]) < 0) {
 		swap(h, node, par);
 		node = par;
 		if (par == 0)
@@ -125,56 +103,34 @@ upheap(heap_t h, size_t node)
 	}
 }
 
-void
 static void
-downheap(heap_t h, size_t node)
+downheap(heap_t h)
 {
-	#define M(F,A...) fprintf(stderr, F, ##A)
-	//M("\n");
-	//M("===========downheap================, initial node %zu!\n", node);
-	for (;;) {
-		size_t l = left(node);
-		size_t r = right(node);
-		//M("new iteration; node: %zu, left: %zu, right: %zu\n", node, l, r);
-		//heap_dump(h, idump);
+	size_t l, r, n;
+	size_t node = 0;
+	while ((r = RIGHT(node)), ((l = LEFT(node)) < h->next)) {
+		bool badleft = h->cmpfn(h->tree[l], h->tree[node]) < 0;
+		bool badright = r < h->next
+		    && h->cmpfn(h->tree[r], h->tree[node]) < 0;
 
-		if (l >= h->next) {
-			//M("...no elements past next, done here\n");
-			break;
-		}
-
-		bool hasleft = h->tree[l];
-		bool hasright = h->tree[r];
-
-		bool badleft = hasleft && h->cmpfn(h->tree[l], h->tree[node]) < 0;
-		bool badright = hasright && h->cmpfn(h->tree[r], h->tree[node]) < 0;
-		//M("hasl: %d, hasr: %d, badl: %d, badr: %d\n",
-		    //hasleft, hasright, badleft, badright);
-
-
-		size_t n;
-
-		if (badleft && badright) {
+		if (badleft && badright)
 			n = h->cmpfn(h->tree[l], h->tree[r]) < 0 ? l : r;
-		} else if (badleft || badright) {
+		else if (badleft || badright)
 			n =  badleft ? l : r;
-		} else
+		else
 			break;
 
-		//M("swapping %zu and %zu\n", node, n);
 		swap(h, node, n);
 		node = n;
 	}
-
-	#undef M
 }
 
 void
 heap_insert(heap_t h, void *elem)
 {
-	if (!h)
+	if (!elem)
 		return;
-	
+
 	if (h->next >= h->treesz)
 		heap_resize(h, h->treesz*2);
 	
@@ -186,13 +142,13 @@ heap_insert(heap_t h, void *elem)
 void*
 heap_remove(heap_t h)
 {
-	if (!h || h->count == 0)
+	if (h->count == 0)
 		return NULL;
 	
 	void *res = h->tree[0];
 	h->tree[0] = h->tree[--h->next];
 	h->count--;
-	downheap(h, 0);
+	downheap(h);
 
 	return res;
 }
@@ -203,20 +159,20 @@ heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
 	if (node >= h->treesz || node >= h->next || !h->tree[node])
 		return;
 
-	heap_rdump(h, left(node), depth+1, df);
+	heap_rdump(h, LEFT(node), depth+1, df);
 	for (int i = 0; i < depth; i++)
 		fputs("  ", stderr);
 	fputs("``", stderr);
 	df(h->tree[node]);
 	fprintf(stderr, "'' [%zu; %12.12p (p:%12.12p: ``",
-	    node, h->tree[node], h->tree[parent(node)]);
+	    node, h->tree[node], h->tree[PARENT(node)]);
 	if (node)
-		df(h->tree[parent(node)]);
+		df(h->tree[PARENT(node)]);
 	else
 		fprintf(stderr, "(root)");
 	fprintf(stderr, "'')]");
 	fputs("\n", stderr);
-	heap_rdump(h, right(node), depth+1, df);
+	heap_rdump(h, RIGHT(node), depth+1, df);
 }
 
 void
