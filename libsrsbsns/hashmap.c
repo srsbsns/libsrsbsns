@@ -99,7 +99,7 @@ hmap_dispose(hmap_t h)
 void
 hmap_put(hmap_t h, const void *key, void *elem)
 {
-	if (!h)
+	if (!h || !key || !elem)
 		return;
 
 	size_t ind = h->hfn(key) % h->bucketsz;

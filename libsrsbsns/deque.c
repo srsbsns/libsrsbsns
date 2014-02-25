@@ -56,7 +56,7 @@ deque_count(deque_t d)
 bool
 deque_pushfront(deque_t d, void* data)
 {
-	if (!d)
+	if (!d || !data)
 		return false;
 
 	while (d->front >= d->nelem)
@@ -70,7 +70,7 @@ deque_pushfront(deque_t d, void* data)
 bool
 deque_pushback(deque_t d, void* data)
 {
-	if (!d)
+	if (!d || !data)
 		return false;
 
 	while (d->back == 0)

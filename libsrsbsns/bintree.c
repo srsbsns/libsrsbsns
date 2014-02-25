@@ -111,7 +111,7 @@ bintree_rclear(struct bt_node *n)
 bool
 bintree_insert(bintree_t t, void *data)
 {
-	if (!t)
+	if (!t || !data)
 		return false;
 
 	struct bt_node *n = t->root;

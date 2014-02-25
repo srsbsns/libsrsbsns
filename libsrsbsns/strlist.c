@@ -50,12 +50,18 @@ slist_clear(slist_t l)
 bool
 slist_insert(slist_t l, size_t i, const char *data)
 {
+	if (!data)
+		return false;
+
 	return ptrlist_insert(l, i, strdup(data));
 }
 
 bool
 slist_replace(slist_t l, size_t i, const char *data)
 {
+	if (!data)
+		return false;
+
 	void *d = ptrlist_get(l, i);
 	free(d);
 	return ptrlist_replace(l, i, strdup(data));

@@ -73,7 +73,7 @@ ptrlist_clear(ptrlist_t l)
 bool
 ptrlist_insert(ptrlist_t l, ssize_t i, void *data)
 {
-	if (!l) 
+	if (!l || !data)
 		return false;
 
 	struct pl_node *n = l->head;
@@ -114,7 +114,7 @@ ptrlist_insert(ptrlist_t l, ssize_t i, void *data)
 bool
 ptrlist_replace(ptrlist_t l, size_t i, void *data)
 {
-	if (!l || !l->head)
+	if (!l || !l->head || !data)
 		return false;
 
 	struct pl_node *n = l->head;
