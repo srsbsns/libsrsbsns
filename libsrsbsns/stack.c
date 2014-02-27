@@ -8,7 +8,7 @@ struct stack{
 };
 
 stack_t
-stack_init(int initsize)
+stack_init(size_t initsize)
 {
 	struct stack *s = malloc(sizeof *s);
 	s->data = deque_init(initsize);

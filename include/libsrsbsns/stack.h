@@ -3,7 +3,7 @@
 * See README for contact-, COPYING for license information. */
 typedef struct stack stack_t;
 
-stack_t stack_init(int initsize);
+stack_t stack_init(size_t initsize);
 void stack_dispose(stack_t s);
 void stack_clear(stack_t s);
 void stack_push(stack_t s, void* data);
