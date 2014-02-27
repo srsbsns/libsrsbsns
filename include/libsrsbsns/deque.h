@@ -3,6 +3,7 @@
 * See README for contact-, COPYING for license information. */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef struct deque *deque_t;
 typedef void (*deque_dump_fn)(void *elem);

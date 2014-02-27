@@ -1,7 +1,11 @@
 /* stack.c - (C) 2014, Emir Marincic
 * libsrsbsns - A srs lib
 * See README for contact-, COPYING for license information. */
+
+#include <stdlib.h>
+
 #include <libsrsbsns/deque.h>
+#include <libsrsbsns/stack.h>
 
 struct stack{
 	deque_t data;
