@@ -10,6 +10,9 @@ Makefile
 unittests/test_bintree
 unittests/test_ptrlist
 unittests/test_hashmap
+unittests/test_deque
+unittests/test_heap
+unittests/test_stack
 aclocal.m4
 autom4te.cache/
 build-aux/
