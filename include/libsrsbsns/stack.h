@@ -10,6 +10,7 @@ typedef struct stack* stack_t;
 stack_t stack_init(size_t initsize);
 void stack_dispose(stack_t s);
 void stack_clear(stack_t s);
+size_t stack_count(stack_t s);
 void stack_push(stack_t s, void* data);
 void* stack_pop(stack_t s);
 void* stack_peek(stack_t s);

@@ -32,6 +32,12 @@ stack_clear(stack_t s)
 	deque_clear(s->data);
 }
 
+size_t
+stack_count(stack_t s)
+{
+	return deque_count(s->data);
+}
+
 void 
 stack_push(stack_t s, void* data)
 {
