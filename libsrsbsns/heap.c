@@ -164,7 +164,7 @@ heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
 		fputs("  ", stderr);
 	fputs("``", stderr);
 	df(h->tree[node]);
-	fprintf(stderr, "'' [%zu; %12.12p (p:%12.12p: ``",
+	fprintf(stderr, "'' [%zu; %12p (p:%12p: ``",
 	    node, h->tree[node], h->tree[PARENT(node)]);
 	if (node)
 		df(h->tree[PARENT(node)]);
@@ -178,6 +178,6 @@ heap_rdump(heap_t h, size_t node, int depth, heap_dump_fn df)
 void
 heap_dump(heap_t h, heap_dump_fn df)
 {
-	fprintf(stderr, "heap %12.12p:\n", h);
+	fprintf(stderr, "heap %12p:\n", h);
 	heap_rdump(h, 0, 0, df);
 }

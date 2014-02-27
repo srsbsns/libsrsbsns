@@ -70,7 +70,8 @@ ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
 	bool wrapped = b->num > 0 && b->head <= b->tail;
 	if (wrapped)
 		warnx("get: we're wrapped");
-	size_t avail1 = !wrapped ? b->head - b->tail : (b->bufsz - (b->tail - b->buf));
+	size_t avail1 = !wrapped ? (size_t)(b->head - b->tail)
+	                         : (b->bufsz - (b->tail - b->buf));
 
 	if (avail1 >= num) {
 		memcpy(data, b->tail, num);
@@ -117,7 +118,8 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 		avail = nbufsz - b->num;
 	}
 
-	size_t avail1 = wrapped ? b->tail - b->head : (b->bufsz - (b->head - b->buf));
+	size_t avail1 = wrapped ? (size_t)(b->tail - b->head)
+	                        : (b->bufsz - (b->head - b->buf));
 
 	if (avail1 >= num) {
 		memcpy(b->head, data, num);

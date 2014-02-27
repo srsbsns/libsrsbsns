@@ -184,8 +184,8 @@ deque_first(deque_t d, bool back)
 void*
 deque_next(deque_t d, bool forwards)
 {
-	if (!d || !forwards && d->iter <= d->back
-	    || forwards && d->iter + 1 >= d->front)
+	if (!d || (!forwards && d->iter <= d->back)
+	    || (forwards && d->iter + 1 >= d->front))
 		return NULL;
 
 	return d->data[d->iter += forwards ? 1 : -1];

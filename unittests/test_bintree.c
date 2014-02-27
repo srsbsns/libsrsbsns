@@ -134,7 +134,6 @@ check_balance(char *inp, size_t len)
 		goto out;
 	}
 
-	size_t height = bintree_height(t);
 	//fprintf(stderr, "height is %zu\n", height);
 	//bintree_dump(t, chdumpfn);
 
@@ -143,7 +142,7 @@ check_balance(char *inp, size_t len)
 	size_t nheight = bintree_height(t);
 	//fprintf(stderr, "nheight is %zu\n", nheight);
 
-	if (1 + (int)log2(bintree_count(t)) < nheight) {
+	if (1 + (size_t)log2(bintree_count(t)) < nheight) {
 		e = "bad height after balance";
 		goto out;
 	}

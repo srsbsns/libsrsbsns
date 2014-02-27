@@ -21,6 +21,7 @@ struct hmap {
 	size_t bucketsz;
 	size_t count;
 
+	bool iterating;
 	size_t buckiter;
 	size_t listiter;
 
@@ -36,9 +37,9 @@ hmap_init(size_t bucketsz, hmap_hash_fn hfn, hmap_eq_fn efn, hmap_keydup_fn keyd
 	if (!h)
 		return NULL;
 
-	h->buckiter = -1;
 	h->bucketsz = bucketsz;
 	h->count = 0;
+	h->iterating = false;
 	h->keybucket = malloc(h->bucketsz * sizeof *h->keybucket);
 	if (!h->keybucket) {
 		free(h);
@@ -187,7 +188,8 @@ hmap_first(hmap_t h, void **key, void **val)
 		if (val)
 			*val = NULL;
 
-		h->buckiter = -1;
+		h->iterating = false;
+
 		return true;
 	}
 	
@@ -200,6 +202,8 @@ hmap_first(hmap_t h, void **key, void **val)
 		*key = k;
 	if (val)
 		*val = v;
+
+	h->iterating = true;
 	
 	return true;
 }
@@ -207,7 +211,7 @@ hmap_first(hmap_t h, void **key, void **val)
 bool
 hmap_next(hmap_t h, void **key, void **val)
 {
-	if (!h || h->buckiter == -1)
+	if (!h || !h->iterating)
 		return false;
 	
 	void *k = ptrlist_get(h->keybucket[h->buckiter], h->listiter);
@@ -226,7 +230,7 @@ hmap_next(hmap_t h, void **key, void **val)
 			if (val)
 				*val = NULL;
 
-			h->buckiter = -1;
+			h->iterating = false;
 			return true;
 		}
 

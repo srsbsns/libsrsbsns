@@ -264,7 +264,6 @@ bintree_balance(bintree_t t)
 	size_t n = t->count;
 	void **arr = malloc(n * sizeof *arr);
 
-	size_t i = 0;
 	if (!bintree_collect(t, arr, TRAV_INORDER))
 		return;
 
@@ -503,7 +502,7 @@ bintree_rdump(struct bt_node *n, int depth, bintree_dump_fn df)
 		fputs("  ", stderr);
 	fputs("``", stderr);
 	df(n->data);
-	fprintf(stderr, "'' [%12.12p (p:%12.12p: ``", n, n->parent);
+	fprintf(stderr, "'' [%12p (p:%12p: ``", n, n->parent);
 	if (n->parent)
 		df(n->parent->data);
 	else
@@ -516,6 +515,6 @@ bintree_rdump(struct bt_node *n, int depth, bintree_dump_fn df)
 void
 bintree_dump(bintree_t t, bintree_dump_fn df)
 {
-	fprintf(stderr, "bintree %12.12p:\n", t);
+	fprintf(stderr, "bintree %12p:\n", t);
 	bintree_rdump(t->root, 0, df);
 }
