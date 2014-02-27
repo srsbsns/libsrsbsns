@@ -14,6 +14,8 @@ struct deque {
 	size_t back;
 	size_t front;
 	size_t iter;
+	size_t pfcnt;
+	size_t pbcnt;
 };
 
 static bool deque_resize(deque_t d, size_t newsz);
@@ -21,10 +23,13 @@ static bool deque_resize(deque_t d, size_t newsz);
 deque_t
 deque_init(size_t initsize)
 {
+	if (!initsize)
+		initsize = 1;
 	struct deque *d = malloc(sizeof *d);
 	d->data = malloc(sizeof *d->data * initsize);
 	d->nelem = initsize;
 	d->back = d->front = d->nelem/2;
+	d->pfcnt = d->pbcnt = 0;
 	return d;
 }
 
@@ -64,6 +69,7 @@ deque_pushfront(deque_t d, void* data)
 			return false;
 
 	d->data[d->front++] = data;
+	d->pfcnt++;
 	return true;
 }
 
@@ -78,6 +84,7 @@ deque_pushback(deque_t d, void* data)
 			return false;
 
 	d->data[--d->back] = data;
+	d->pbcnt++;
 	return true;
 }
 
@@ -95,7 +102,16 @@ deque_resize(deque_t d, size_t newsz)
 	if (!newloc)
 		return false;
 
+	double bias = 2. * ((double)d->pfcnt - d->pbcnt) / d->nelem;
+	if (bias > .9)
+		bias = .9;
+	else if (bias < -.9)
+		bias = -.9;
+	
+	
 	size_t newback = (newsz - count)/2;
+
+	newback += bias * newback;
 
 	memcpy(&newloc[newback], &d->data[d->back], count * sizeof *newloc);
 
