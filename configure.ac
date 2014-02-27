@@ -23,6 +23,7 @@ AC_CHECK_HEADERS([arpa/inet.h netdb.h stddef.h stdint.h stdlib.h string.h sys/so
 AC_CHECK_LIB([m], [log2], [], [AC_MSG_ERROR([libm missing?])])
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
+AC_C_INLINE
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
