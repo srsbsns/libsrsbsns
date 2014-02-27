@@ -14,5 +14,7 @@ size_t stack_count(stack_t s);
 void stack_push(stack_t s, void* data);
 void* stack_pop(stack_t s);
 void* stack_peek(stack_t s);
+void* stack_first(stack_t s, bool back);
+void* stack_next(stack_t s, bool forwards);
 
 #endif /* LIBSRSBSNS_STACK_H */

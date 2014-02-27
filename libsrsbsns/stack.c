@@ -55,3 +55,16 @@ stack_peek(stack_t s)
 {
 	return deque_peekfront(s->data);
 }
+
+void*
+stack_first(stack_t s, bool back)
+{
+	return deque_first(s->data, back);
+}
+
+void*
+stack_next(stack_t s, bool forwards)
+{
+	return deque_next(s->data, forwards);
+}
+
