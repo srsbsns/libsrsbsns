@@ -162,6 +162,32 @@ dynarr_next(dynarr_t d, void **elem)
 	return true;
 }
 
+ssize_t
+dynarr_findraw(dynarr_t d, void *data)
+{
+	for (size_t i = 0; i < d->nused; i++)
+		if (d->data[i] == data)
+			return (ssize_t)i;
+	return -1;
+}
+
+ssize_t
+dynarr_findfn(dynarr_t d, dynarr_find_fn ffn)
+{
+	for (size_t i = 0; i < d->nused; i++)
+		if (ffn(d->data[i]))
+			return (ssize_t)i;
+	return -1;
+}
+
+ssize_t
+dynarr_findeqfn(dynarr_t d, dynarr_eq_fn efn, void *needle)
+{
+	for (size_t i = 0; i < d->nused; i++)
+		if (efn(d->data[i], needle))
+			return (ssize_t)i;
+	return -1;
+}
 
 void
 dynarr_dump(dynarr_t d, dynarr_dump_fn dfn)
