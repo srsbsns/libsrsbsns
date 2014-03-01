@@ -2,6 +2,9 @@
 * libsrsbsns - A srs lib
 * See README for contact-, COPYING for license information. */
 
+#ifndef LIBSRSBSNS_DEQUE_H
+#define LIBSRSBSNS_DEQUE_H 1
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -22,3 +25,5 @@ void* deque_peekback(deque_t d);
 void* deque_first(deque_t d, bool back);
 void* deque_next(deque_t d, bool forwards);
 void deque_dump(deque_t d, deque_dump_fn dfn);
+
+#endif /* LIBSRSBSNS_DEQUE_H */
