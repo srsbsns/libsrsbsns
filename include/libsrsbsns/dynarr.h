@@ -11,7 +11,7 @@
 typedef struct dynarr *dynarr_t;
 typedef void (*dynarr_dump_fn)(void *elem);
 
-dynarr_t dynarr_init(size_t initsize);
+dynarr_t dynarr_init(size_t initsize, bool nulling);
 void dynarr_dispose(dynarr_t d);
 void dynarr_clear(dynarr_t d);
 void dynarr_truncate(dynarr_t d, size_t fromindex);

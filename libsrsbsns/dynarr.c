@@ -13,18 +13,22 @@ struct dynarr {
 	size_t nelem; //number of elements allocated
 	size_t nused; //apparent size to the outside world (<= nelem)
 	void **data;
+	bool nulling;
 };
 
 static void provide_index(dynarr_t d, size_t index);
 static bool dynarr_resize(dynarr_t d, size_t newsz);
+static void nullrange(void **data, size_t off, size_t num);
 
 dynarr_t
-dynarr_init(size_t initsize)
+dynarr_init(size_t initsize, bool nulling)
 {
 	struct dynarr *d = malloc(sizeof *d);
 	d->data = malloc(sizeof *d->data * initsize);
 	d->nelem = initsize;
 	d->nused = initsize;
+	if ((d->nulling = nulling))
+		nullrange(d->data, 0, initsize);
 	return d;
 }
 
@@ -54,6 +58,8 @@ dynarr_truncate(dynarr_t d, size_t fromindex)
 		return;
 
 	d->nused = fromindex;
+	if (d->nulling)
+		nullrange(d->data, fromindex, d->nelem - fromindex);
 }
 
 size_t
@@ -100,6 +106,13 @@ dynarr_put(dynarr_t d, size_t index, void *elem)
 	d->data[index] = elem;
 }
 
+static void
+nullrange(void **data, size_t off, size_t num)
+{
+	for (size_t i = 0; i < num; i++)
+		data[i+off] = NULL;
+}
+
 static bool
 dynarr_resize(dynarr_t d, size_t newsz)
 {
@@ -110,6 +123,8 @@ dynarr_resize(dynarr_t d, size_t newsz)
 	size_t min = newsz < d->nused ? newsz : d->nused;
 
 	memcpy(newloc, d->data, min * sizeof *newloc);
+	if (d->nulling)
+		nullrange(newloc, min, newsz - min);
 
 	free(d->data);
 	d->data = newloc;

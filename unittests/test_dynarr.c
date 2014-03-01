@@ -11,7 +11,7 @@
 const char* /*UNITTEST*/
 test_basic(void)
 {
-	dynarr_t a = dynarr_init(0);
+	dynarr_t a = dynarr_init(0, false);
 	if (dynarr_count(a) != 0)
 		return "newly allocated dynarr not empty";
 	
@@ -24,7 +24,7 @@ const char* /*UNITTEST*/
 test_access(void)
 {
 	int ia[] = {0,1,2,3,4};
-	dynarr_t a = dynarr_init(1);
+	dynarr_t a = dynarr_init(1, true);
 
 	dynarr_put(a, 0, &ia[0]);
 	dynarr_push(a, &ia[1]);
