@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include <libsrsbsns/dynarr.h>
+#include <libsrsbsns/stack.h>
 
 #include <libsrsbsns/graph.h>
 
@@ -212,4 +213,34 @@ trav_dfs_r(node_t n, int tag, node_op_fn nf, edge_op_fn ef, void *user)
 static void
 trav_bfs(node_t start, node_op_fn nf, edge_op_fn ef, void *user)
 {
+	int tag;
+	while ((tag = rand()) == start->travtag || !tag);
+
+	stack_t st = stack_init(16);
+
+	stack_push(st, start);
+
+	node_t n;
+	while ((n = stack_pop(st))) {
+		if (n->travtag == tag)
+			continue;
+
+		n->travtag = tag;
+		if (nf)
+			nf(n, user);
+
+		size_t ec = !n->out ? 0 : dynarr_count(n->out);
+
+		for (size_t i = 0; i < ec; i++) {
+			edge_t e = dynarr_get(n->out, i);
+			if (e->travtag != tag) {
+				e->travtag = tag;
+				if (ef)
+					ef(e, user);
+
+				if (e->to->travtag != tag) // redundant
+					stack_push(st, e->to);
+			}
+		}
+	}
 }
