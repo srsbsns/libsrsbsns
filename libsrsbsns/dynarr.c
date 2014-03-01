@@ -89,7 +89,7 @@ provide_index(dynarr_t d, size_t index)
 		}
 	}
 
-	if (index > d->nused)
+	if (index >= d->nused)
 		d->nused = index + 1;
 }
 
