@@ -198,9 +198,10 @@ trav_dfs_r(node_t n, int tag, node_op_fn nf, edge_op_fn ef, void *user)
 
 	for (size_t i = 0; i < ec; i++) {
 		edge_t e = dynarr_get(n->out, i);
-		if (ef && e->travtag != tag) {
+		if (e->travtag != tag) {
 			e->travtag = tag;
-			ef(e, user);
+			if (ef)
+				ef(e, user);
 		}
 
 		if (nf)
