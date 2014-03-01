@@ -3,6 +3,7 @@
  * See README for contact-, COPYING for license information. */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <libsrsbsns/dynarr.h>
 
@@ -13,6 +14,7 @@ struct edge {
 	struct node *to;
 	double weight;
 	dynarr_t attr;
+	int travtag;
 };
 
 struct node {
@@ -20,11 +22,15 @@ struct node {
 	dynarr_t out;
 	void *elem;
 	dynarr_t attr;
+	int travtag;
 };
 
 static void add_edge(dynarr_t *a, edge_t e);
 static void del_edge(dynarr_t *a, edge_t e);
 static edge_t mkedge(node_t from, node_t to, double w);
+static void trav_dfs(node_t start, node_op_fn nf, edge_op_fn ef, void *user);
+static void trav_dfs_r(node_t n, int tag, node_op_fn nf, edge_op_fn ef, void *user);
+static void trav_bfs(node_t start, node_op_fn nf, edge_op_fn ef, void *user);
 
 
 node_t
@@ -35,6 +41,7 @@ alloc_node(void* elem)
 	n->attr = NULL;
 	n->in = n->out = NULL;
 	n->elem = elem;
+	n->travtag = 0;
 
 	return n;
 }
@@ -82,6 +89,8 @@ link_node(node_t from, node_t to, double w)
 
 	add_edge(&from->out, e);
 	add_edge(&to->in, e);
+	
+	//XXX travtags!
 
 	return e;
 }
@@ -110,6 +119,22 @@ drop_edge(edge_t e)
 {
 	del_edge(&e->from->out, e);
 	del_edge(&e->to->in, e);
+}
+
+void
+traverse(node_t n, int travtype, node_op_fn nf, edge_op_fn ef, void *user)
+{
+	switch (travtype)
+	{
+	case TRAV_DFS:
+		trav_dfs(n, nf, ef, user);
+		break;
+	case TRAV_BFS:
+		trav_bfs(n, nf, ef, user);
+		break;
+	default:
+		fprintf(stderr, "unknown traverse type %d\n", travtype);
+	}
 }
 
 // -----------------
@@ -146,6 +171,45 @@ mkedge(node_t from, node_t to, double w)
 	e->from = from;
 	e->to = to;
 	e->weight = w;
+	e->travtag = 0;
 
 	return e;
+}
+
+static void
+trav_dfs(node_t start, node_op_fn nf, edge_op_fn ef, void *user)
+{
+	int tag;
+	while ((tag = rand()) == start->travtag || !tag);
+
+	trav_dfs_r(start, tag, nf, ef, user);
+}
+
+static void
+trav_dfs_r(node_t n, int tag, node_op_fn nf, edge_op_fn ef, void *user)
+{
+	if (n->travtag == tag)
+		return;
+	
+	n->travtag = tag;
+
+	size_t ec = !n->out ? 0 : dynarr_count(n->out);
+
+	for (size_t i = 0; i < ec; i++) {
+		edge_t e = dynarr_get(n->out, i);
+		if (ef && e->travtag != tag) {
+			e->travtag = tag;
+			ef(e, user);
+		}
+
+		if (nf)
+			nf(n, user);
+
+		trav_dfs_r(e->to, tag, nf, ef, user);
+	}
+}
+
+static void
+trav_bfs(node_t start, node_op_fn nf, edge_op_fn ef, void *user)
+{
 }
