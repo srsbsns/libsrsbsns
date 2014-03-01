@@ -59,3 +59,29 @@ test_access(void)
 
 	return NULL;
 }
+
+const char* /*UNITTEST*/
+test_iter(void)
+{
+	int ia[] = {0,1,2,3,4,5,6,7,8,9};
+	dynarr_t a = dynarr_init(1, true);
+		dynarr_dump(a, idump);
+
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		dynarr_put(a, i, &ia[i]);
+		dynarr_dump(a, idump);
+	}
+	void *e;
+	for (size_t i = 0; i < COUNTOF(ia); i++) {
+		if (!(!i ? dynarr_first(a, &e) : dynarr_next(a, &e)))
+			return "dynarr_first or next failed";
+
+		if (*(int*)e != ia[i])
+			return "wrong element seen while iterating";
+	}
+
+	if (dynarr_next(a, &e))
+		return "dynarr_next didn't fail when it should";
+	
+	return NULL;
+}

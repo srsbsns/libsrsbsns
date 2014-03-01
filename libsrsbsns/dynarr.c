@@ -12,6 +12,7 @@
 struct dynarr {
 	size_t nelem; //number of elements allocated
 	size_t nused; //apparent size to the outside world (<= nelem)
+	size_t iter; //apparent size to the outside world (<= nelem)
 	void **data;
 	bool nulling;
 };
@@ -142,6 +143,25 @@ dynarr_shrink(dynarr_t d, double countfac)
 		
 	return dynarr_resize(d, (size_t)(countfac * d->nused));
 }
+
+bool
+dynarr_first(dynarr_t d, void **elem)
+{
+	d->iter = 0;
+
+	return dynarr_next(d, elem);
+}
+
+bool
+dynarr_next(dynarr_t d, void **elem)
+{
+	if (d->iter >= d->nused)
+		return false;
+	
+	*elem = d->data[d->iter++];
+	return true;
+}
+
 
 void
 dynarr_dump(dynarr_t d, dynarr_dump_fn dfn)

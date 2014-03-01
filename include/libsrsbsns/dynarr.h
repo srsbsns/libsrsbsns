@@ -21,5 +21,7 @@ void* dynarr_get(dynarr_t d, size_t index);
 void dynarr_put(dynarr_t d, size_t index, void *elem);
 bool dynarr_shrink(dynarr_t d, double countfac);
 void dynarr_dump(dynarr_t d, dynarr_dump_fn dfn);
+bool dynarr_first(dynarr_t d, void **elem);
+bool dynarr_next(dynarr_t d, void **elem);
 
 #endif /* LIBSRSBSNS_DYNARR_H */
