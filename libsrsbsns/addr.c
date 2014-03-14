@@ -25,13 +25,12 @@ connect
 */
 
 
-#include <libsrsbsns/addr.h>
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
 
 #include <unistd.h>
 
@@ -41,55 +40,180 @@ connect
 
 #include <err.h>
 
-int
-addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, conbind_t func)
+#include <libsrsbsns/misc.h>
+#include <libsrsbsns/io.h>
+
+#include "intlog.h"
+
+#include <libsrsbsns/addr.h>
+
+int addr_mksocket(const char *host, const char *service,
+    int socktype, int aflags, conbind_t func,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
 {
+	D("invoked: host='%s', serv='%s', scktype: %d, aflags: %d, func: %s, sto=%lu, hto=%lu", host, service, socktype, aflags, !func ? "(none)" : func == connect ? "connect" : func == bind ? "bind" : "(unkonwn)", softto_us, hardto_us);
+
 	struct addrinfo *ai_list = NULL;
 	struct addrinfo hints;
+	int64_t hardtsend = hardto_us ? tstamp_us() + hardto_us : 0;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = socktype;//SOCK_STREAM
+	hints.ai_socktype = socktype;
 	hints.ai_protocol = 0;
-	hints.ai_flags = AI_NUMERICSERV | aflags;
-	char portstr[6];
-	snprintf(portstr, sizeof portstr, "%hu", port);
+	hints.ai_flags = aflags;
+	if (isdigitstr(service))
+		hints.ai_flags |= AI_NUMERICSERV;
 
-	int r = getaddrinfo(addr, portstr, &hints, &ai_list);
+
+	D("calling getaddrinfo on '%s:%s'", host, service);
+
+	int r = getaddrinfo(host, service, &hints, &ai_list);
 
 	if (r != 0) {
-		warnx("%s", gai_strerror(r));
+		W("getaddrinfo() failed: %s", gai_strerror(r));
 		return -1;
 	}
 
 	if (!ai_list) {
-		warnx("result address list empty");
+		W("getaddrinfo() result address list empty");
 		return -1;
 	}
 
 	int sck = -1;
 
-	for (struct addrinfo *ai = ai_list; ai; ai = ai->ai_next)
-	{
+	D("iterating over result list...");
+	for (struct addrinfo *ai = ai_list; ai; ai = ai->ai_next) {
+		sck = -1;
+		if (hardtsend && hardtsend - tstamp_us() <= 0) {
+			W("hard timeout");
+			return 0;
+		}
+
+		D("next result, creating socket (fam=%d, styp=%d, prot=%d)",
+		    ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+
 		sck = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sck < 0) {
-			warn("cannot create socket");
+			WE("cannot create socket");
 			continue;
 		}
 
-		if (func) {
-			errno = 0;
-			r = func(sck, ai->ai_addr, ai->ai_addrlen);
+		char peeraddr[64] = "(non-INET/INET6)";
+		unsigned short peerport = 0;
 
-			if (r != 0)
-			{
-				warn("target function (connect/bind) failed");
+		if (ai->ai_family == AF_INET) {
+			struct sockaddr_in *sin =
+			    (struct sockaddr_in*)ai->ai_addr;
+
+			inet_ntop(AF_INET, &sin->sin_addr,
+			    peeraddr, sizeof peeraddr);
+
+			peerport = ntohs(sin->sin_port);
+		} else if (ai->ai_family == AF_INET6) {
+			struct sockaddr_in6 *sin =
+			    (struct sockaddr_in6*)ai->ai_addr;
+
+			inet_ntop(AF_INET6, &sin->sin6_addr,
+			    peeraddr, sizeof peeraddr);
+
+			peerport = ntohs(sin->sin6_port);
+		}
+
+		char portstr[7];
+		snprintf(portstr, sizeof portstr, ":%hu", peerport);
+		strNcat(peeraddr, portstr, sizeof peeraddr);
+
+		int opt = 1;
+		socklen_t optlen = sizeof opt;
+
+		D("peer addr is '%s'", peeraddr);
+
+		if (sockaddr)
+			*sockaddr = *(ai->ai_addr);
+		if (addrlen)
+			*addrlen = ai->ai_addrlen;
+		
+		if (func) {
+			D("going non-blocking");
+			if (fcntl(sck, F_SETFL, O_NONBLOCK) == -1) {
+				WE("failed to enable nonblocking mode");
 				close(sck);
-				sck = -1;
 				continue;
 			}
-		}
-		break;
+
+			D("set to nonblocking mode, calling the backend function...");
+			errno = 0;
+			int r = func(sck, ai->ai_addr, ai->ai_addrlen);
+
+			if (r == -1 && (errno != EINPROGRESS)) {
+				WE("connect() failed");
+				close(sck);
+				continue;
+			}
+
+			int64_t trem = 0;
+			D("backend returned with %d", r);
+
+			if (hardtsend) {
+				trem = hardtsend - tstamp_us();
+				if (trem <= 0) {
+					D("hard timeout detected");
+					close(sck);
+					continue;
+				}
+			}
+
+			int64_t softtsend = softto_us ? tstamp_us() + softto_us : 0;
+
+			if (softtsend) {
+				int64_t trem_tmp = softtsend - tstamp_us();
+
+				if (trem_tmp <= 0) {
+					W("soft timeout");
+					close(sck);
+					continue;
+				}
+
+				if (trem_tmp < trem)
+					trem = trem_tmp;
+			}
+
+			D("calling io_select1w (timeout: %lld us)", trem);
+			r = io_select1w(sck, trem);
+
+			if (r < 0) {
+				WE("select() failed");
+				close(sck);
+				continue;
+			} else if (!r) {
+				W("select() timeout");
+				close(sck);
+				continue;
+			} else
+				D("selected!");
+
+
+			D("calling getsockopt to query error state");
+			if (getsockopt(sck, SOL_SOCKET, SO_ERROR, &opt, &optlen) != 0) {
+				W("getsockopt failed");
+				close(sck);
+				continue;
+			}
+
+			if (opt == 0) {
+				I("socket in good shape! ('%s')", peeraddr);
+				break;
+			} else {
+				W("backend function failed (%d)", opt);
+				close(sck);
+				continue;
+			}
+		} else
+			break;
 	}
+	
+	D("after loop; alling freeaddrinfo then returning %d", sck);
 
 	freeaddrinfo(ai_list);
 
@@ -97,27 +221,75 @@ addr_mksocket(const char *addr, unsigned short port, int socktype, int aflags, c
 }
 
 int
-addr_connect_socket(const char *host, unsigned short port)
+addr_connect_socket_p(const char *host, unsigned short port,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
 {
-	return addr_mksocket(host, port, SOCK_STREAM, 0, connect);
+	char portstr[6];
+	snprintf(portstr, sizeof portstr, "%hu", port);
+	return addr_connect_socket(host, portstr, sockaddr, addrlen, softto_us, hardto_us);
 }
 
 int
-addr_bind_socket(const char *localif, unsigned short port)
+addr_bind_socket_p(const char *localif, unsigned short port,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
 {
-	return addr_mksocket(localif, port, SOCK_STREAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	char portstr[6];
+	snprintf(portstr, sizeof portstr, "%hu", port);
+	return addr_bind_socket(localif, portstr, sockaddr, addrlen, softto_us, hardto_us);
 }
 
 int
-addr_connect_socket_dgram(const char *host, unsigned short port)
+addr_connect_socket_dgram_p(const char *host, unsigned short port,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
 {
-	return addr_mksocket(host, port, SOCK_DGRAM, 0, connect);
+	char portstr[6];
+	snprintf(portstr, sizeof portstr, "%hu", port);
+	return addr_connect_socket_dgram(host, portstr, sockaddr, addrlen, softto_us, hardto_us);
 }
 
 int
-addr_bind_socket_dgram(const char *localif, unsigned short port, bool bc, bool ra)
+addr_bind_socket_dgram_p(const char *localif, unsigned short port, bool bc, bool ra,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
 {
-	int s = addr_mksocket(localif, port, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind);
+	char portstr[6];
+	snprintf(portstr, sizeof portstr, "%hu", port);
+	return addr_bind_socket_dgram(localif, portstr, bc, ra, sockaddr, addrlen, softto_us, hardto_us);
+}
+
+int
+addr_connect_socket(const char *host, const char *service,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
+{
+	return addr_mksocket(host, service, SOCK_STREAM, 0, connect, sockaddr, addrlen, softto_us, hardto_us);
+}
+
+int
+addr_bind_socket(const char *localif, const char *service,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
+{
+	return addr_mksocket(localif, service, SOCK_STREAM, AI_ADDRCONFIG | AI_PASSIVE, bind, sockaddr, addrlen, softto_us, hardto_us);
+}
+
+int
+addr_connect_socket_dgram(const char *host, const char *service,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
+{
+	return addr_mksocket(host, service, SOCK_DGRAM, 0, connect, sockaddr, addrlen, softto_us, hardto_us);
+}
+
+int
+addr_bind_socket_dgram(const char *localif, const char *service, bool bc, bool ra,
+    struct sockaddr *sockaddr, size_t *addrlen,
+    int64_t softto_us, int64_t hardto_us)
+{
+	int s = addr_mksocket(localif, service, SOCK_DGRAM, AI_ADDRCONFIG | AI_PASSIVE, bind, sockaddr, addrlen, softto_us, hardto_us);
 	if (s >= 0 && bc) {
 		int on = 1;
 		errno = 0;
@@ -144,19 +316,32 @@ addr_bind_socket_dgram(const char *localif, unsigned short port, bool bc, bool r
 	return s;
 }
 
-void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
+void addr_parse_hostspec_p(char *hoststr, size_t hoststr_sz,
 		unsigned short *port, const char *hostspec)
 {
-	strncpy(hoststr, hostspec, hoststr_sz);
+	char portstr[6];
+	addr_parse_hostspec(hoststr, hoststr_sz, portstr, sizeof portstr, hostspec);
+	if (port)
+		*port = (unsigned short)strtoul(portstr, NULL, 10);
+}
+
+void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
+		char *service, size_t service_sz, const char *hostspec)
+{
+	strNcpy(hoststr, hostspec + (hostspec[0] == '['), hoststr_sz);
 	char *ptr = strchr(hoststr, ']');
 	if (!ptr)
 		ptr = hoststr;
+	else
+		*ptr++ = '\0';
+
 	ptr = strchr(ptr, ':');
-	if (ptr) {
-		*port = (unsigned short)strtol(ptr+1, NULL, 10);
-		*ptr = '\0';
-	} else
-		*port = 0;
+	if (service && service_sz) {
+		if (ptr)
+			strNcpy(service, ptr+1, service_sz);
+		else
+			service[0] = '\0';
+	}
 }
 
 
@@ -209,11 +394,11 @@ addr_make_sockaddr(const char *ip, struct sockaddr *dst)
 {
 	char host[256];
 	unsigned short port;
-	addr_parse_hostspec(host, sizeof host, &port, ip);
+	addr_parse_hostspec_p(host, sizeof host, &port, ip);
 	
 	int r;
 
-	if (host[0] == '[') {
+	if (strchr(host, ':')) {
 		host[strlen(host)-1] = '\0';
 		r = addr_make_sockaddr_in6(host+1, port,
 				(struct sockaddr_in6*)dst);
