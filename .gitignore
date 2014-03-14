@@ -13,6 +13,9 @@ unittests/test_hashmap
 unittests/test_deque
 unittests/test_heap
 unittests/test_stack
+unittests/test_addr
+unittests/test_dynarr
+unittests/test_graph
 aclocal.m4
 autom4te.cache/
 build-aux/
