@@ -1,4 +1,4 @@
-bin_PROGRAMS = test_ptrlist test_hashmap test_bintree test_deque test_deque test_heap test_stack test_graph test_dynarr
+bin_PROGRAMS = test_ptrlist test_hashmap test_bintree test_deque test_deque test_heap test_stack test_graph test_dynarr test_addr
 test_ptrlist_SOURCES = run_test_ptrlist.c unittests_common.h
 test_ptrlist_CPPFLAGS = -I$(top_srcdir)/include
 test_ptrlist_LDADD = ../libsrsbsns/libsrsbsns.la
@@ -30,3 +30,7 @@ test_graph_LDADD = ../libsrsbsns/libsrsbsns.la
 test_dynarr_SOURCES = run_test_dynarr.c unittests_common.h
 test_dynarr_CPPFLAGS = -I$(top_srcdir)/include
 test_dynarr_LDADD = ../libsrsbsns/libsrsbsns.la
+
+test_addr_SOURCES = run_test_addr.c unittests_common.h
+test_addr_CPPFLAGS = -I$(top_srcdir)/include
+test_addr_LDADD = ../libsrsbsns/libsrsbsns.la
