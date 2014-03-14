@@ -6,8 +6,6 @@
 # include <config.h>
 #endif
 
-#include <libsrsbsns/io.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,6 +17,12 @@
 #include <unistd.h>
 
 #include <err.h>
+
+#include "intlog.h"
+
+#include <libsrsbsns/misc.h>
+#include <libsrsbsns/io.h>
+
 
 #define ISLINETERM(C) ((C) == '\n' || (C) == '\r' || (C) == '\0')
 #define MAX_WRITEBUF 4096
@@ -99,5 +103,104 @@ io_writeall(int fd, const char *buf, size_t n)
 		bc += (size_t)r;
 	}
 	return true;
+}
+
+int
+io_select1w(int fd, int64_t to_us)
+{
+	return io_select(&fd, 1, NULL, 0, NULL, 0, to_us);
+}
+
+int
+io_select1r(int fd, int64_t to_us)
+{
+	return io_select(&fd, 1, NULL, 0, NULL, 0, to_us);
+}
+
+int
+io_select(int *rfd, size_t num_rfd,
+           int *wfd, size_t num_wfd,
+           int *efd, size_t num_efd,
+	   int64_t to_us)
+{
+	int64_t trem = 0;
+	bool success = false;
+	int preverrno = errno;
+	int64_t tsend = to_us ? tstamp_us() + to_us : 0;
+	struct timeval tout;
+	tout.tv_sec = 0;
+	tout.tv_usec = 0;
+	for(;;) {
+		fd_set rfds, wfds, efds;
+		FD_ZERO(&rfds);
+		FD_ZERO(&wfds);
+		FD_ZERO(&efds);
+		int maxfd = -1;
+
+		for (size_t i = 0; i < num_rfd; i++) {
+			FD_SET(rfd[i], &rfds);
+			if (rfd[i] > maxfd)
+				maxfd = rfd[i];
+		}
+
+		for (size_t i = 0; i < num_wfd; i++) {
+			FD_SET(wfd[i], &wfds);
+			if (wfd[i] > maxfd)
+				maxfd = wfd[i];
+		}
+
+		for (size_t i = 0; i < num_efd; i++) {
+			FD_SET(efd[i], &efds);
+			if (efd[i] > maxfd)
+				maxfd = efd[i];
+		}
+
+		if (maxfd < 0) {
+			E("no fds given?");
+			errno = EINVAL;
+			return -1;
+		}
+
+		if (tsend) {
+			trem = tsend - tstamp_us();
+
+			if (trem <= 0) {
+				D("timeout reached");
+				return 0;
+			}
+
+			tconv(&tout, &trem, false);
+		}
+
+		int r = select(maxfd+1, &rfds, &wfds, &efds, tsend ? &tout : NULL);
+		if (!r)
+			continue;
+
+		if (r < 0) {
+			if (errno == EINTR) {
+				WE("select");
+				errno = preverrno;
+				continue;
+			}
+
+			WE("select() failed");
+		 } else if (r > 0) {
+			success = true;
+			D("selected!");
+			for (size_t i = 0; i < num_rfd; i++)
+				if (!FD_ISSET(rfd[i], &rfds))
+					rfd[i] = -1;
+
+			for (size_t i = 0; i < num_wfd; i++)
+				if (!FD_ISSET(wfd[i], &wfds))
+					wfd[i] = -1;
+
+			for (size_t i = 0; i < num_efd; i++)
+				if (!FD_ISSET(efd[i], &efds))
+					efd[i] = -1;
+		}
+
+		return r;
+	}
 }
 #undef ISLINETERM

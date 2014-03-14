@@ -7,11 +7,17 @@
 
 #include <stdbool.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stddef.h>
 
 int io_read_line(int fd, char *dest, size_t dest_sz);
 int io_fprintf(int fd, const char *fmt, ...);
 int io_vfprintf(int fd, const char *fmt, va_list ap);
 bool io_writeall(int fd, const char *buf, size_t n);
+
+int io_select1w(int fd, int64_t to_us);
+int io_select1r(int fd, int64_t to_us);
+int io_select(int *rfd, size_t num_rfd, int *wfd, size_t num_wfd,
+           int *efd, size_t num_efd, int64_t to_us);
 
 #endif /* LIBSRSBSNS_IO_H */
