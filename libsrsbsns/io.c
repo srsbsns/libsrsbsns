@@ -108,7 +108,7 @@ io_writeall(int fd, const char *buf, size_t n)
 int
 io_select1w(int fd, int64_t to_us)
 {
-	return io_select(&fd, 1, NULL, 0, NULL, 0, to_us);
+	return io_select(0, NULL, &fd, 1, NULL, 0, to_us);
 }
 
 int

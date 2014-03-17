@@ -205,7 +205,9 @@ int addr_mksocket(const char *host, const char *service,
 				I("socket in good shape! ('%s')", peeraddr);
 				break;
 			} else {
-				W("backend function failed (%d)", opt);
+				char errstr[256];
+				strerror_r(opt, errstr, sizeof errstr);
+				W("backend function failed (%d: %s)", opt, errstr);
 				close(sck);
 				continue;
 			}
