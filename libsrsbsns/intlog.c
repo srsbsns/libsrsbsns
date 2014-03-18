@@ -8,10 +8,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+
+#include <libsrsbsns/misc.h>
+#include <libsrsbsns/strmap.h>
 
 #include "intlog.h"
 
@@ -28,6 +32,7 @@
 static bool s_open;
 static bool s_stderr = true;
 static int s_lvl = -1;
+static smap_t s_lvlmap;
 static bool s_fancy;
 
 static const char* lvlnam(int lvl);
@@ -88,27 +93,97 @@ ilog_getlvl(void)
 	return s_lvl;
 }
 
+static void
+ilog_init(void)
+{
+	s_lvl = LOG_ERR;
+	if (!(s_lvlmap = smap_init(16)))
+		return;
+
+	char tok[64];
+	const char *v = getenv("LIBSRSBSNS_DEBUG");
+	const char *sp = v;
+	do { 
+		while (isspace(*sp))
+			sp++;
+
+		if (!*sp)
+			break;
+
+		const char *end = strchr(sp, ' ');
+		if (!end)
+			end = sp + strlen(sp);
+
+		size_t len = (size_t)(end - sp) + 1;
+		if (len > sizeof tok)
+			len = sizeof tok;
+
+		strNcpy(tok, sp, len);
+		sp = end;
+
+		char *eq = strchr(tok, '=');
+
+		if (!eq) {
+			if (isdigitstr(tok)) {
+				/* special case: a stray number
+				 * means set default loglevel */
+				s_lvl = (int)strtol(tok, NULL, 10);
+			}
+			continue;
+		}
+
+		char nam[64], val[64];
+		size_t nlen = eq - tok + 1;
+		if (nlen > sizeof nam)
+			nlen = sizeof nam;
+
+		size_t vlen = strlen(eq); // neither +1 nor -1
+		if (vlen > sizeof val)
+			vlen = sizeof val;
+
+		strNcpy(nam, tok, nlen);
+		strNcpy(val, eq + 1, vlen);
+
+		if (!isdigitstr(val))
+			continue;
+
+		//fprintf(stderr, "tok '%s', nam: '%s', val: '%s'",
+		//    tok, nam, val);
+		int *i = malloc(sizeof i);
+		if (!i)
+			continue;
+
+		*i = (int)strtol(val, NULL, 10);
+		smap_put(s_lvlmap, nam, i);
+	} while (*sp);
+
+	v = getenv("LIBSRSBSNS_DEBUG_TARGET");
+	if (v && strcmp(v, "syslog") == 0)
+		ilog_syslog("libsrsbsns", LOG_USER);
+	else
+		ilog_stderr();
+
+	v = getenv("LIBSRSBSNS_DEBUG_FANCY");
+	if (v && v[0] != '0')
+		ilog_setfancy(true);
+	else
+		ilog_setfancy(false);
+
+}
 
 void
 ilog_log(int lvl, int errn, const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-	if (s_lvl == -1) {
-		const char *v = getenv("LIBSRSBSNS_DEBUG");
-		s_lvl = v ? v[0] - '0' : LOG_ERR;
-		v = getenv("LIBSRSBSNS_DEBUG_TARGET");
-		if (v && strcmp(v, "syslog") == 0)
-			ilog_syslog("libsrsbsns", LOG_USER);
-		else
-			ilog_stderr();
-		v = getenv("LIBSRSBSNS_DEBUG_FANCY");
-		if (v && v[0] != '0')
-			ilog_setfancy(true);
-		else
-			ilog_setfancy(false);
-	}
+	if (s_lvl == -1)
+		ilog_init();
 
-	if (lvl > s_lvl)
+	int thr = s_lvl;
+	int *l;
+	if (s_lvlmap && (l = smap_get(s_lvlmap, file)))
+		thr = *l;
+
+	if (lvl > thr)
 		return;
 
 	char buf[4096];
