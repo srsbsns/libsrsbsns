@@ -36,7 +36,7 @@ bool
 isdigitstr(const char *p)
 {
 	while (*p)
-		if (!isdigit(*p))
+		if (!isdigit(*p++))
 			return false;
 
 	return true;
