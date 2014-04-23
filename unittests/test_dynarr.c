@@ -65,11 +65,9 @@ test_iter(void)
 {
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	dynarr_t a = dynarr_init(1, true);
-		dynarr_dump(a, idump);
 
 	for (size_t i = 0; i < COUNTOF(ia); i++) {
 		dynarr_put(a, i, &ia[i]);
-		dynarr_dump(a, idump);
 	}
 	void *e;
 	for (size_t i = 0; i < COUNTOF(ia); i++) {
