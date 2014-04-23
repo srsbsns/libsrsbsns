@@ -47,6 +47,18 @@ connect
 
 #include <libsrsbsns/addr.h>
 
+
+static int
+setblocking(int fd, bool blocking)
+{
+	int opts = fcntl(fd, F_GETFL);
+	if (blocking)
+		opts &= ~O_NONBLOCK;
+	else
+		opts |= O_NONBLOCK;
+	return fcntl(fd, F_SETFL, opts);
+}
+
 int addr_mksocket(const char *host, const char *service,
     int socktype, int aflags, conbind_t func,
     struct sockaddr *sockaddr, size_t *addrlen,
@@ -136,7 +148,7 @@ int addr_mksocket(const char *host, const char *service,
 		
 		if (func) {
 			D("going non-blocking");
-			if (fcntl(sck, F_SETFL, O_NONBLOCK) == -1) {
+			if (setblocking(sck, false) == -1) {
 				WE("failed to enable nonblocking mode");
 				close(sck);
 				continue;
@@ -144,73 +156,89 @@ int addr_mksocket(const char *host, const char *service,
 
 			D("set to nonblocking mode, calling the backend function...");
 			errno = 0;
+			bool doselect = false;
 			int r = func(sck, ai->ai_addr, ai->ai_addrlen);
 
 			if (r == -1 && (errno != EINPROGRESS)) {
-				WE("connect() failed");
+				WE("backend failed");
 				close(sck);
 				continue;
-			}
+			} else if (r == -1)
+				doselect = true;
 
 			int64_t trem = 0;
 			D("backend returned with %d", r);
+			if (doselect) {
+				if (hardtsend) {
+					trem = hardtsend - tstamp_us();
+					if (trem <= 0) {
+						D("hard timeout detected");
+						close(sck);
+						continue;
+					}
+				}
 
-			if (hardtsend) {
-				trem = hardtsend - tstamp_us();
-				if (trem <= 0) {
-					D("hard timeout detected");
+				int64_t softtsend = softto_us ? tstamp_us() + softto_us : 0;
+
+				if (softtsend) {
+					int64_t trem_tmp = softtsend - tstamp_us();
+
+					if (trem_tmp <= 0) {
+						W("soft timeout");
+						close(sck);
+						continue;
+					}
+
+					if (trem_tmp < trem)
+						trem = trem_tmp;
+				}
+
+				D("calling io_select1w (timeout: %lld us)", trem);
+				r = io_select1w(sck, trem);
+
+				if (r < 0) {
+					WE("select() failed");
+					close(sck);
+					continue;
+				} else if (!r) {
+					W("select() timeout");
+					close(sck);
+					continue;
+				} else
+					D("selected!");
+
+				D("calling getsockopt to query error state");
+				if (getsockopt(sck, SOL_SOCKET, SO_ERROR, &opt, &optlen) != 0) {
+					W("getsockopt failed");
 					close(sck);
 					continue;
 				}
-			}
 
-			int64_t softtsend = softto_us ? tstamp_us() + softto_us : 0;
-
-			if (softtsend) {
-				int64_t trem_tmp = softtsend - tstamp_us();
-
-				if (trem_tmp <= 0) {
-					W("soft timeout");
+				if (opt == 0) {
+					I("socket in good shape! ('%s')", peeraddr);
+					if (setblocking(sck, true) == -1) {
+						WE("failed to disable nonblocking mode");
+						close(sck);
+						continue;
+					}
+					break;
+				} else {
+					char errstr[256];
+					strerror_r(opt, errstr, sizeof errstr);
+					W("backend function failed (%d: %s)", opt, errstr);
 					close(sck);
 					continue;
 				}
-
-				if (trem_tmp < trem)
-					trem = trem_tmp;
-			}
-
-			D("calling io_select1w (timeout: %lld us)", trem);
-			r = io_select1w(sck, trem);
-
-			if (r < 0) {
-				WE("select() failed");
-				close(sck);
-				continue;
-			} else if (!r) {
-				W("select() timeout");
-				close(sck);
-				continue;
-			} else
-				D("selected!");
-
-
-			D("calling getsockopt to query error state");
-			if (getsockopt(sck, SOL_SOCKET, SO_ERROR, &opt, &optlen) != 0) {
-				W("getsockopt failed");
-				close(sck);
-				continue;
-			}
-
-			if (opt == 0) {
-				I("socket in good shape! ('%s')", peeraddr);
-				break;
 			} else {
-				char errstr[256];
-				strerror_r(opt, errstr, sizeof errstr);
-				W("backend function failed (%d: %s)", opt, errstr);
-				close(sck);
-				continue;
+				I("There we go... ('%s')", peeraddr);
+				if (setblocking(sck, true) == -1) {
+					WE("failed to disable nonblocking mode");
+					close(sck);
+					continue;
+				}
+				break;
 			}
+
 		} else
 			break;
 	}
