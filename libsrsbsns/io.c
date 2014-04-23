@@ -108,7 +108,7 @@ io_writeall(int fd, const char *buf, size_t n)
 int
 io_select1w(int fd, int64_t to_us)
 {
-	return io_select(0, NULL, &fd, 1, NULL, 0, to_us);
+	return io_select(NULL, 0, &fd, 1, NULL, 0, to_us);
 }
 
 int
@@ -124,7 +124,6 @@ io_select(int *rfd, size_t num_rfd,
 	   int64_t to_us)
 {
 	int64_t trem = 0;
-	bool success = false;
 	int preverrno = errno;
 	int64_t tsend = to_us ? tstamp_us() + to_us : 0;
 	struct timeval tout;
@@ -185,7 +184,6 @@ io_select(int *rfd, size_t num_rfd,
 
 			WE("select() failed");
 		 } else if (r > 0) {
-			success = true;
 			D("selected!");
 			for (size_t i = 0; i < num_rfd; i++)
 				if (!FD_ISSET(rfd[i], &rfds))
