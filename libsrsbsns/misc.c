@@ -115,9 +115,8 @@ splitquoted(char *input, char **dest, size_t dest_nelem)
 				break;
 			
 			if (!quotetype) {
-				quotetype = 0;
 				inws = true;
-				*input = '\0'; //drop the quote
+				*input = '\0';
 			}
 
 			break;
