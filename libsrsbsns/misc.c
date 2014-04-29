@@ -7,9 +7,12 @@
 #endif
 
 #include <string.h>
+#include <limits.h>
 #include <ctype.h>
 
 #include <libsrsbsns/misc.h>
+
+#include "intlog.h"
 
 int64_t
 tstamp_us(void)
@@ -64,4 +67,72 @@ strNcpy(char *dst, const char *src, size_t len)
 	char *r = strncpy(dst, src, len);
 	dst[len-1] = '\0';
 	return r;
+}
+
+
+int
+splitquoted(char *input, char **dest, size_t dest_nelem)
+{
+	if (dest_nelem > INT_MAX) {
+		E("dest_nelem too large (%zu > %d)", dest_nelem, INT_MAX);
+		return -1;
+	}
+
+	char quotetype = 0;
+	bool inws = true;
+	size_t n = 0;
+
+	while (*input) {
+		switch (*input) {
+		case '\'':
+		case '"':
+			if (inws) {
+				quotetype = *input;
+				inws = false;
+				if (n < dest_nelem)
+					dest[n] = input + 1; //skip the quote
+				n++;
+			} else if (quotetype == *input) {
+				quotetype = 0;
+				inws = true;
+				*input = '\0'; //drop the quote
+			} else if (!quotetype) {
+				//quote in unquoted word starts
+				//a new token (not true for sh)
+				quotetype = *input;
+				*input = '\0';
+				if (n < dest_nelem)
+					dest[n] = input + 1; //skip the quote
+				n++;
+			}
+			break;
+
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+			if (inws)
+				break;
+			
+			if (!quotetype) {
+				quotetype = 0;
+				inws = true;
+				*input = '\0'; //drop the quote
+			}
+
+			break;
+		default:
+			if (inws) {
+				quotetype = 0;
+				inws = false;
+				if (n < dest_nelem)
+					dest[n] = input;
+				n++;
+			}
+		}
+
+		input++;
+	}
+
+	return n;
 }

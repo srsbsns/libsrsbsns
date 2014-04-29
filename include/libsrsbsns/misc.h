@@ -17,4 +17,7 @@ bool isdigitstr(const char *p);
 void strNcat(char *dest, const char *src, size_t destsz);
 char* strNcpy(char *dst, const char *src, size_t len);
 
+//call with dest_nelem = 0 to get number of args which would have been extracted
+int splitquoted(char *input, char **dest, size_t dest_nelem);
+
 #endif /* LIBSRSBSNS_MISC_H */
