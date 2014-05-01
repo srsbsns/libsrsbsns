@@ -102,60 +102,62 @@ ilog_init(void)
 
 	char tok[64];
 	const char *v = getenv("LIBSRSBSNS_DEBUG");
-	const char *sp = v;
-	do { 
-		while (isspace(*sp))
-			sp++;
+	if (v) {
+		const char *sp = v;
+		do {
+			while (isspace(*sp))
+				sp++;
 
-		if (!*sp)
-			break;
+			if (!*sp)
+				break;
 
-		const char *end = strchr(sp, ' ');
-		if (!end)
-			end = sp + strlen(sp);
+			const char *end = strchr(sp, ' ');
+			if (!end)
+				end = sp + strlen(sp);
 
-		size_t len = (size_t)(end - sp) + 1;
-		if (len > sizeof tok)
-			len = sizeof tok;
+			size_t len = (size_t)(end - sp) + 1;
+			if (len > sizeof tok)
+				len = sizeof tok;
 
-		strNcpy(tok, sp, len);
-		sp = end;
+			strNcpy(tok, sp, len);
+			sp = end;
 
-		char *eq = strchr(tok, '=');
+			char *eq = strchr(tok, '=');
 
-		if (!eq) {
-			if (isdigitstr(tok)) {
-				/* special case: a stray number
-				 * means set default loglevel */
-				s_lvl = (int)strtol(tok, NULL, 10);
+			if (!eq) {
+				if (isdigitstr(tok)) {
+					/* special case: a stray number
+					 * means set default loglevel */
+					s_lvl = (int)strtol(tok, NULL, 10);
+				}
+				continue;
 			}
-			continue;
-		}
 
-		char nam[64], val[64];
-		size_t nlen = eq - tok + 1;
-		if (nlen > sizeof nam)
-			nlen = sizeof nam;
+			char nam[64], val[64];
+			size_t nlen = eq - tok + 1;
+			if (nlen > sizeof nam)
+				nlen = sizeof nam;
 
-		size_t vlen = strlen(eq); // neither +1 nor -1
-		if (vlen > sizeof val)
-			vlen = sizeof val;
+			size_t vlen = strlen(eq); // neither +1 nor -1
+			if (vlen > sizeof val)
+				vlen = sizeof val;
 
-		strNcpy(nam, tok, nlen);
-		strNcpy(val, eq + 1, vlen);
+			strNcpy(nam, tok, nlen);
+			strNcpy(val, eq + 1, vlen);
 
-		if (!isdigitstr(val))
-			continue;
+			if (!isdigitstr(val))
+				continue;
 
-		//fprintf(stderr, "tok '%s', nam: '%s', val: '%s'",
-		//    tok, nam, val);
-		int *i = malloc(sizeof i);
-		if (!i)
-			continue;
+			//fprintf(stderr, "tok '%s', nam: '%s', val: '%s'",
+			//    tok, nam, val);
+			int *i = malloc(sizeof i);
+			if (!i)
+				continue;
 
-		*i = (int)strtol(val, NULL, 10);
-		smap_put(s_lvlmap, nam, i);
-	} while (*sp);
+			*i = (int)strtol(val, NULL, 10);
+			smap_put(s_lvlmap, nam, i);
+		} while (*sp);
+	}
 
 	v = getenv("LIBSRSBSNS_DEBUG_TARGET");
 	if (v && strcmp(v, "syslog") == 0)
