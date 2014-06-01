@@ -123,12 +123,6 @@ test_iter(void)
 	if (!seena || !seenb || !seenc || !seend)
 		return "iterator fail";
 
-	if (!hmap_next(mp, &key, &val))
-		return "hmap_next failed";
-
-	if (key || val)
-		return "extra elements after iterator ended";
-
 	if (hmap_next(mp, &key, &val))
 		return "iterator still valid";
 
