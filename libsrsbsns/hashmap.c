@@ -231,7 +231,7 @@ hmap_next(hmap_t h, void **key, void **val)
 				*val = NULL;
 
 			h->iterating = false;
-			return true;
+			return false;
 		}
 
 		k = ptrlist_get(h->keybucket[h->buckiter], h->listiter);
