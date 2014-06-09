@@ -190,7 +190,7 @@ hmap_first(hmap_t h, void **key, void **val)
 
 		h->iterating = false;
 
-		return true;
+		return false;
 	}
 	
 	void *k = ptrlist_get(h->keybucket[h->buckiter], 0);
