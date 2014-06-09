@@ -39,11 +39,11 @@ io_read_line(int fd, char *dest, size_t dest_sz)
 		r = read(fd, &c, 1);
 		//fprintf(stderr, "read: %d (%hhx; %c)\n", r, (char)(r == 1 ? c : 0), (char)(r == 1 ? c : '?'));
 		if (r == 0) {
-			warnx("EOF after %zu/%zu bytes (and c is %hhx)", bc, dest_sz, c);
+			W("EOF after %zu/%zu bytes (and c is %hhx)", bc, dest_sz, c);
 			break; //EOF
 		}
 		else if (r == -1) {
-			warn("read failed after %zu/%zu bytes", bc, dest_sz);
+			WE("read failed after %zu/%zu bytes", bc, dest_sz);
 			return -1;
 		}
 		assert (r == 1);
@@ -97,7 +97,7 @@ io_writeall(int fd, const char *buf, size_t n)
 	while(bc < n) {
 		ssize_t r = write(fd, buf + bc, n - bc);
 		if (r == -1) {
-			warn("io_writeall, write() failed");
+			WE("io_writeall, write() failed");
 			return false;
 		}
 		bc += (size_t)r;
