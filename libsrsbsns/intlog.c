@@ -43,7 +43,7 @@ static const char* lvlcol(int lvl);
 
 
 void
-ilog_syslog(const char *ident, int facility)
+bsnslog_syslog(const char *ident, int facility)
 {
 	if (s_open)
 		closelog();
@@ -55,7 +55,7 @@ ilog_syslog(const char *ident, int facility)
 
 
 void
-ilog_stderr(void)
+bsnslog_stderr(void)
 {
 	if (s_open)
 		closelog();
@@ -65,7 +65,7 @@ ilog_stderr(void)
 
 
 void
-ilog_setfancy(bool fancy)
+bsnslog_setfancy(bool fancy)
 {
 	if (!s_stderr)
 		return; //don't send color sequences to syslog
@@ -74,27 +74,27 @@ ilog_setfancy(bool fancy)
 
 
 bool
-ilog_getfancy(void)
+bsnslog_getfancy(void)
 {
 	return s_stderr && s_fancy;
 }
 
 
 void
-ilog_setlvl(int lvl)
+bsnslog_setlvl(int lvl)
 {
 	s_lvl = lvl;
 }
 
 
 int
-ilog_getlvl(void)
+bsnslog_getlvl(void)
 {
 	return s_lvl;
 }
 
 static void
-ilog_init(void)
+bsnslog_init(void)
 {
 	s_lvl = LOG_ERR;
 	if (!(s_lvlmap = smap_init(16)))
@@ -161,24 +161,24 @@ ilog_init(void)
 
 	v = getenv("LIBSRSBSNS_DEBUG_TARGET");
 	if (v && strcmp(v, "syslog") == 0)
-		ilog_syslog("libsrsbsns", LOG_USER);
+		bsnslog_syslog("libsrsbsns", LOG_USER);
 	else
-		ilog_stderr();
+		bsnslog_stderr();
 
 	v = getenv("LIBSRSBSNS_DEBUG_FANCY");
 	if (v && v[0] != '0')
-		ilog_setfancy(true);
+		bsnslog_setfancy(true);
 	else
-		ilog_setfancy(false);
+		bsnslog_setfancy(false);
 
 }
 
 void
-ilog_log(int lvl, int errn, const char *file, int line, const char *func,
+bsnslog_log(int lvl, int errn, const char *file, int line, const char *func,
     const char *fmt, ...)
 {
 	if (s_lvl == -1)
-		ilog_init();
+		bsnslog_init();
 
 	int thr = s_lvl;
 	int *l;
