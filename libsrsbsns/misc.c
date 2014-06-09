@@ -18,9 +18,12 @@ int64_t
 tstamp_us(void)
 {
 	struct timeval t;
-	int64_t ts;
-	gettimeofday(&t, NULL);
-	tconv(&t, &ts, true);
+	int64_t ts = 0;
+	if (gettimeofday(&t, NULL) != 0)
+		E("gettimeofday");
+	else
+		tconv(&t, &ts, true);
+
 	return ts;
 }
 
