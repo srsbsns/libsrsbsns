@@ -15,9 +15,11 @@ int io_fprintf(int fd, const char *fmt, ...);
 int io_vfprintf(int fd, const char *fmt, va_list ap);
 bool io_writeall(int fd, const char *buf, size_t n);
 
-int io_select1w(int fd, int64_t to_us);
-int io_select1r(int fd, int64_t to_us);
+int io_select1w(int fd, int64_t to_us, bool ignoreintr);
+int io_select1r(int fd, int64_t to_us, bool ignoreintr);
+int io_select2r(bool *rdbl1, bool *rdbl2, int fd1, int fd2,
+    uint64_t to_us, bool ignoreintr);
 int io_select(int *rfd, size_t num_rfd, int *wfd, size_t num_wfd,
-           int *efd, size_t num_efd, int64_t to_us);
+           int *efd, size_t num_efd, int64_t to_us, bool ignoreintr);
 
 #endif /* LIBSRSBSNS_IO_H */

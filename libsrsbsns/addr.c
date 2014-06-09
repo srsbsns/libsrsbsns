@@ -194,7 +194,7 @@ int addr_mksocket(const char *host, const char *service,
 				}
 
 				D("calling io_select1w (timeout: %lld us)", trem);
-				r = io_select1w(sck, trem);
+				r = io_select1w(sck, trem, true);
 
 				if (r < 0) {
 					WE("select() failed");

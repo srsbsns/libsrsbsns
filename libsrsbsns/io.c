@@ -106,22 +106,40 @@ io_writeall(int fd, const char *buf, size_t n)
 }
 
 int
-io_select1w(int fd, int64_t to_us)
+io_select1w(int fd, int64_t to_us, bool ignoreintr)
 {
-	return io_select(NULL, 0, &fd, 1, NULL, 0, to_us);
+	return io_select(NULL, 0, &fd, 1, NULL, 0, to_us, ignoreintr);
 }
 
 int
-io_select1r(int fd, int64_t to_us)
+io_select1r(int fd, int64_t to_us, bool ignoreintr)
 {
-	return io_select(&fd, 1, NULL, 0, NULL, 0, to_us);
+	return io_select(&fd, 1, NULL, 0, NULL, 0, to_us, ignoreintr);
+}
+
+int
+io_select2r(bool *rdbl1, bool *rdbl2, int fd1, int fd2, uint64_t to_us, bool ignoreintr)
+{
+	int fds[] = {fd1, fd2};
+	if (rdbl1) *rdbl1 = false;
+	if (rdbl2) *rdbl2 = false;
+
+	int r = io_select(fds, 2, NULL, 0, NULL, 0, to_us, ignoreintr);
+	if (r > 0) {
+		if (rdbl1 && fds[0] != -1)
+			*rdbl1 = true;
+		if (rdbl2 && fds[1] != -1)
+			*rdbl2 = true;
+	}
+
+	return r;
 }
 
 int
 io_select(int *rfd, size_t num_rfd,
            int *wfd, size_t num_wfd,
            int *efd, size_t num_efd,
-	   int64_t to_us)
+	   int64_t to_us, bool ignoreintr)
 {
 	int64_t trem = 0;
 	int preverrno = errno;
@@ -176,13 +194,12 @@ io_select(int *rfd, size_t num_rfd,
 			continue;
 
 		if (r < 0) {
-			if (errno == EINTR) {
-				WE("select");
+			if (errno == EINTR && ignoreintr) {
 				errno = preverrno;
 				continue;
 			}
 
-			WE("select() failed");
+			WE("select");
 		 } else if (r > 0) {
 			D("selected!");
 			for (size_t i = 0; i < num_rfd; i++)
