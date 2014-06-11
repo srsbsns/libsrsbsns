@@ -140,3 +140,22 @@ size_t smap_count(smap_t h)
 	return hmap_count(h);
 }
 
+bool
+smap_first(smap_t h, const char **key, void **val)
+{
+	void *k;
+	bool b = hmap_first(h, &k, val);
+	if (b)
+		*key = k;
+	return b;
+}
+
+bool
+smap_next(smap_t h, const char **key, void **val)
+{
+	void *k;
+	bool b = hmap_next(h, &k, val);
+	if (b)
+		*key = k;
+	return b;
+}

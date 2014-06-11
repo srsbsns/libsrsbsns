@@ -20,4 +20,7 @@ void* smap_get(smap_t h, const char *key);
 bool smap_del(smap_t h, const char *key);
 size_t smap_count(smap_t h);
 
+bool smap_first(smap_t h, const char **key, void **val);
+bool smap_next(smap_t h, const char **key, void **val);
+
 #endif /* LIBSRSBSNS_STRMAP_H */
