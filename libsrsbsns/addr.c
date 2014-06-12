@@ -92,6 +92,7 @@ int addr_mksocket(const char *host, const char *service,
 		return -1;
 	}
 
+	bool success = false;
 	int sck = -1;
 
 	D("iterating over result list...");
@@ -221,6 +222,7 @@ int addr_mksocket(const char *host, const char *service,
 						close(sck);
 						continue;
 					}
+					success = true;
 					break;
 				} else {
 					char errstr[256];
@@ -236,18 +238,21 @@ int addr_mksocket(const char *host, const char *service,
 					close(sck);
 					continue;
 				}
+				success = true;
 				break;
 			}
 
-		} else
+		} else {
+			success = true;
 			break;
+		}
 	}
 	
 	D("after loop; alling freeaddrinfo then returning %d", sck);
 
 	freeaddrinfo(ai_list);
 
-	return sck;
+	return success ? sck : -1;
 }
 
 int
