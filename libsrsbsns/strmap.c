@@ -145,7 +145,7 @@ smap_first(smap_t h, const char **key, void **val)
 {
 	void *k;
 	bool b = hmap_first(h, &k, val);
-	if (b)
+	if (b && key)
 		*key = k;
 	return b;
 }
@@ -155,7 +155,7 @@ smap_next(smap_t h, const char **key, void **val)
 {
 	void *k;
 	bool b = hmap_next(h, &k, val);
-	if (b)
+	if (b && key)
 		*key = k;
 	return b;
 }
