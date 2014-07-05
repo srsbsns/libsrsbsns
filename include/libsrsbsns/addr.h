@@ -6,6 +6,7 @@
 #define LIBSRSBSNS_ADDR_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/socket.h>
 
 typedef int (*conbind_t)(int, const struct sockaddr*, socklen_t);
