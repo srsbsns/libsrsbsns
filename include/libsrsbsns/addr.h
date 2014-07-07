@@ -21,7 +21,7 @@ int addr_mksocket(const char *host, const char *service,
  * store results in ,,hoststr'' and ,,port'' */
 void addr_parse_hostspec(char *hoststr, size_t hoststr_sz, char *service, size_t service_sz, const char *hostspec);
 void addr_parse_hostspec_p(char *hoststr, size_t hoststr_sz, unsigned short *port, const char *hostspec);
-int addr_make_sockaddr(const char *ip, struct sockaddr *dst);
+int addr_make_sockaddr(const char *ip, struct sockaddr *dst, size_t *sasz);
 
 int addr_connect_socket_p(const char *host, unsigned short port,
     struct sockaddr *sockaddr, size_t *addrlen,

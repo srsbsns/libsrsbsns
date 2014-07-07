@@ -371,10 +371,12 @@ void addr_parse_hostspec(char *hoststr, size_t hoststr_sz,
 		*ptr++ = '\0';
 
 	ptr = strchr(ptr, ':');
-	if (service && service_sz) {
-		if (ptr)
+	if (ptr) {
+		if (service && service_sz)
 			strNcpy(service, ptr+1, service_sz);
-		else
+		*ptr = '\0';
+	} else {
+		if (service && service_sz)
 			service[0] = '\0';
 	}
 }
@@ -423,9 +425,10 @@ addr_make_sockaddr_in4(const char *ip, unsigned short port,
 	return true;
 }
 
+
 /* ip format: "x.y.z.w:port" for ipv4, "[a:b:c::h]:port" for ipv6" */
 int
-addr_make_sockaddr(const char *ip, struct sockaddr *dst)
+addr_make_sockaddr(const char *ip, struct sockaddr *dst, size_t *sasz)
 {
 	char host[256];
 	unsigned short port;
@@ -437,9 +440,13 @@ addr_make_sockaddr(const char *ip, struct sockaddr *dst)
 		host[strlen(host)-1] = '\0';
 		r = addr_make_sockaddr_in6(host+1, port,
 				(struct sockaddr_in6*)dst);
-	} else
+		if (sasz)
+			*sasz = sizeof (struct sockaddr_in6);
+	} else {
 		r = addr_make_sockaddr_in4(host, port,
 				(struct sockaddr_in*)dst);
-
+		if (sasz)
+			*sasz = sizeof (struct sockaddr_in);
+	}
 	return r;
 }
