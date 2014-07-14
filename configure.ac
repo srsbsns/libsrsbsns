@@ -18,12 +18,13 @@ AC_PROG_CC_C99
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-AC_CHECK_HEADERS([arpa/inet.h netdb.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
 
 AC_CHECK_LIB([m], [log2], [], [AC_MSG_ERROR([libm missing?])])
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
 AC_C_INLINE
+AC_TYPE_UINT64_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
@@ -31,9 +32,12 @@ AC_TYPE_INT64_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 
+
 # Checks for library functions.
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([gettimeofday memset socket strchr strdup strtol])
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([gettimeofday memset select socket strchr strdup strtol strtoul])
 
 # Checks for header files (1).
 AC_CONFIG_FILES([Makefile
