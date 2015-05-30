@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include <libsrsbsns/ptrlist.h>
 #include <libsrsbsns/hashmap.h>
 

@@ -8,6 +8,8 @@
 #define TRAV_BFS 0
 #define TRAV_DFS 1
 
+#include <sys/types.h>
+
 typedef struct node *node_t;
 typedef struct edge *edge_t;
 

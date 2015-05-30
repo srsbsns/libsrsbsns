@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include <sys/types.h>
+
 typedef size_t (*hmap_hash_fn)(const void *elem);
 typedef void (*hmap_op_fn)(const void *elem);
 typedef void* (*hmap_keydup_fn)(const void *key);

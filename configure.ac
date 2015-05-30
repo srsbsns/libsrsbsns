@@ -37,7 +37,7 @@ AC_TYPE_SSIZE_T
 AC_FUNC_STRERROR_R
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([gettimeofday memset select socket strchr strdup strtol strtoul])
+AC_CHECK_FUNCS([gettimeofday memset select socket strchr strtol strtoul])
 
 # Checks for header files (1).
 AC_CONFIG_FILES([Makefile

@@ -14,6 +14,8 @@
 #include <stdarg.h>
 #include <time.h>
 
+#include <syslog.h>
+
 #include <libsrsbsns/misc.h>
 #include <libsrsbsns/strmap.h>
 

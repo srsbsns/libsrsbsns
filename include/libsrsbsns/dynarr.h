@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include <sys/types.h>
+
 typedef struct dynarr *dynarr_t;
 typedef void (*dynarr_dump_fn)(void *elem);
 typedef bool (*dynarr_find_fn)(void *elem);

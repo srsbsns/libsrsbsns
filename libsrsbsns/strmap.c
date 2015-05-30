@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "common.h"
 
 #include <libsrsbsns/ptrlist.h>
 #include <libsrsbsns/hashmap.h>
@@ -27,7 +28,7 @@ streq(const void *s1, const void *s2)
 static void*
 strkeydup(const void *s)
 {
-	return strdup((const char*)s);
+	return str_dup((const char*)s);
 }
 
 static size_t

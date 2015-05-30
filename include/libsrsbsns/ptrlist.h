@@ -9,6 +9,9 @@
 
 #include <stdbool.h>
 
+#include <sys/types.h>
+
+
 typedef struct ptrlist *ptrlist_t;
 typedef bool (*ptrlist_find_fn)(const void *e);
 typedef void (*ptrlist_op_fn)(const void *e);

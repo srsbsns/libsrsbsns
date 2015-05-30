@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include <sys/types.h>
+
 #include "hashmap.h"
 
 typedef hmap_t smap_t;

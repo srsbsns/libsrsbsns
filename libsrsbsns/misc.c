@@ -72,7 +72,6 @@ strNcpy(char *dst, const char *src, size_t len)
 	return r;
 }
 
-
 int
 splitquoted(char *input, char **dest, size_t dest_nelem)
 {

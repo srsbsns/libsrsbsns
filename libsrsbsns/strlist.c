@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "common.h"
+
 #include <libsrsbsns/strlist.h>
 
 static bool
@@ -53,7 +55,7 @@ slist_insert(slist_t l, size_t i, const char *data)
 	if (!data)
 		return false;
 
-	return ptrlist_insert(l, i, strdup(data));
+	return ptrlist_insert(l, i, str_dup(data));
 }
 
 bool
@@ -64,7 +66,7 @@ slist_replace(slist_t l, size_t i, const char *data)
 
 	void *d = ptrlist_get(l, i);
 	free(d);
-	return ptrlist_replace(l, i, strdup(data));
+	return ptrlist_replace(l, i, str_dup(data));
 }
 
 bool

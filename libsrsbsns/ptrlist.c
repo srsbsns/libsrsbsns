@@ -118,11 +118,9 @@ ptrlist_replace(ptrlist_t l, size_t i, void *data)
 		return false;
 
 	struct pl_node *n = l->head;
-	struct pl_node *prev = NULL;
 
 	while (n->next && i > 0) {
 		i--;
-		prev = n;
 		n = n->next;
 	}
 

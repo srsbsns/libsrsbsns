@@ -11,6 +11,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <syslog.h>
+
 #include <libsrsbsns/log.h>
 
 #define COL_REDINV "\033[07;31;01m"
