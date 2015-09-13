@@ -18,7 +18,7 @@ AC_PROG_CC_C99
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
 
 AC_CHECK_LIB([m], [log2], [], [AC_MSG_ERROR([libm missing?])])
 # Checks for typedefs, structures, and compiler characteristics.
