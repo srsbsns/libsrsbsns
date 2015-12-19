@@ -8,7 +8,9 @@
 
 #include <libsrsbsns/ringbuf.h>
 
+#include <ctype.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <err.h>
@@ -59,7 +61,13 @@ ringbuf_clear(ringbuf_t b)
 }
 
 size_t
-ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
+ringbuf_count(ringbuf_t b)
+{
+	return b->num;
+}
+
+static size_t
+do_get(ringbuf_t b, unsigned char *data, size_t num, bool peek)
 {
 	if (b->num == 0)
 		return 0;
@@ -68,31 +76,42 @@ ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
 		num = b->num;
 
 	bool wrapped = b->num > 0 && b->head <= b->tail;
-	if (wrapped)
-		warnx("get: we're wrapped");
 	size_t avail1 = !wrapped ? (size_t)(b->head - b->tail)
 	                         : (b->bufsz - (b->tail - b->buf));
 
 	if (avail1 >= num) {
 		memcpy(data, b->tail, num);
-		b->tail += num;
+		if (!peek)
+			b->tail += num;
 	} else {
 		memcpy(data, b->tail, avail1);
 		memcpy(data + avail1, b->buf, num - avail1);
-		warnx("get: mhhhhhhhhhhhhm");
-		b->tail = b->buf + (num - avail1);
+		if (!peek)
+			b->tail = b->buf + (num - avail1);
 	}
-	b->num -= num;
+
+	if (!peek)
+		b->num -= num;
 
 	return num;
+}
+
+size_t
+ringbuf_get(ringbuf_t b, unsigned char *data, size_t num)
+{
+	return do_get(b, data, num, false);
+}
+
+size_t
+ringbuf_peek(ringbuf_t b, unsigned char *data, size_t num)
+{
+	return do_get(b, data, num, true);
 }
 
 void
 ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 {
 	bool wrapped = b->num > 0 && b->head <= b->tail;
-	if (wrapped)
-		warnx("put: we're wrapped\n");
 	size_t avail = b->bufsz - b->num;
 	if (num > avail)
 	{
@@ -104,7 +123,6 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 		if (!wrapped) {
 			memcpy(nbuf, b->tail, b->head - b->tail);
 		} else {
-			warnx("put: mhm\n");
 			size_t firstlen = b->bufsz - (b->tail - b->buf);
 			memcpy(nbuf, b->tail, firstlen);
 			memcpy(nbuf + firstlen, b->buf, b->head - b->buf);
@@ -128,12 +146,11 @@ ringbuf_put(ringbuf_t b, unsigned char *data, size_t num)
 		memcpy(b->head, data, avail1);
 		memcpy(b->buf, data + avail1, num - avail1);
 		b->head = b->buf + (num - avail1);
-		warnx("put: mhhhhhhhhhhhhm\n");
 	}
 	b->num += num;
 }
 
-/*
+
 void
 ringbuf_dump(ringbuf_t b)
 {
@@ -144,25 +161,30 @@ ringbuf_dump(ringbuf_t b)
 	fprintf(stderr, "distance tail-end: %td\n", (ptrdiff_t)bf->bufsz - (bf->tail - bf->buf));
 	fprintf(stderr, "bufsz: %zu, numelem :%zu\n", bf->bufsz, bf->num);
 	fprintf(stderr, "actual buffer:");
-	for(size_t i = 0; i < bf->bufsz; ++i)
+
+	unsigned char *bufend = b->buf + b->bufsz;
+	unsigned char *t = b->tail;
+	for(size_t i = 0; i < bf->num; ++i)
 	{
-		fprintf(stderr, " %02x", bf->buf[i]);
+		fprintf(stderr, " %02x", *t);
+		t++;
+		if (t == bufend)
+			t = b->buf;
 	}
 	fprintf(stderr, "\n");
+	fprintf(stderr, "sanitized string:");
 
-	unsigned char *p = bf->head;
-	bool wrapped = false;
-	for(size_t i = 0; i < bf->num; i++)
+	t = b->tail;
+	for(size_t i = 0; i < bf->num; ++i)
 	{
-		fprintf(stderr, "%celem: '%s'\n", wrapped?'*':' ', p);
-		wrapped = false;
-		p += strlen(p) + 1;
-		if (p - bf->buf == (ptrdiff_t)bf->bufsz || p[0] == '\0')
-		{
-			p = bf->buf;
-			wrapped = true;
-		}
+		if (isprint(*t))
+			fprintf(stderr, "%c", *t);
+		else
+			fprintf(stderr, "<%02x>", *t);
+		t++;
+		if (t == bufend)
+			t = b->buf;
 	}
-	fprintf(stderr, "this is it\n");
+	fprintf(stderr, "\n");
 }
-*/
+
