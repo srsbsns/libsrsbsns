@@ -161,7 +161,7 @@ int addr_mksocket(const char *host, const char *service,
 			D("set to nonblocking mode, calling the backend function...");
 			errno = 0;
 			bool doselect = false;
-			int r = func(sck, ai->ai_addr, ai->ai_addrlen);
+			r = func(sck, ai->ai_addr, ai->ai_addrlen);
 
 			if (r == -1 && (errno != EINPROGRESS)) {
 				WE("backend failed");

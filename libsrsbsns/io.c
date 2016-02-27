@@ -118,7 +118,7 @@ io_select1r(int fd, int64_t to_us, bool ignoreintr)
 }
 
 int
-io_select2r(bool *rdbl1, bool *rdbl2, int fd1, int fd2, uint64_t to_us, bool ignoreintr)
+io_select2r(bool *rdbl1, bool *rdbl2, int fd1, int fd2, int64_t to_us, bool ignoreintr)
 {
 	int fds[] = {fd1, fd2};
 	if (rdbl1) *rdbl1 = false;
@@ -143,6 +143,9 @@ io_select(int *rfd, size_t num_rfd,
 {
 	int64_t trem = 0;
 	int preverrno = errno;
+	bool poll = to_us < 0;
+	if (poll)
+		to_us = 0;
 	int64_t tsend = to_us ? tstamp_us() + to_us : 0;
 	struct timeval tout;
 	tout.tv_sec = 0;
@@ -189,9 +192,13 @@ io_select(int *rfd, size_t num_rfd,
 			tconv(&tout, &trem, false);
 		}
 
-		int r = select(maxfd+1, &rfds, &wfds, &efds, tsend ? &tout : NULL);
-		if (!r)
+		int r = select(maxfd+1, &rfds, &wfds, &efds, (tsend || poll) ? &tout : NULL);
+		if (!r) {
+			if (poll)
+				return 0;
+
 			continue;
+		}
 
 		if (r < 0) {
 			if (errno == EINTR && ignoreintr) {

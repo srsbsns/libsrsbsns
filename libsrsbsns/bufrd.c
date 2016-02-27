@@ -1,4 +1,4 @@
-/* bufrd.c - (C) 2012, Timo Buhrmester
+/* bufrd.c - (C) 2015, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 
@@ -7,10 +7,11 @@
 #endif
 
 #include <libsrsbsns/ringbuf.h>
+#include <libsrsbsns/io.h>
 #include <libsrsbsns/bufrd.h>
+#include "intlog.h"
 
 #include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
 
 #include <err.h>
@@ -110,6 +111,21 @@ bufrd_buffered(bufrd_t b)
 }
 
 bool
+bufrd_canread(bufrd_t b)
+{
+	if (bufrd_buffered(b))
+		return true;
+	D("can we read fd %d?", b->fd);
+	int r = io_select1r(b->fd, -1, true);
+	if (r == -1)
+		WE("select");
+	else
+		D("%s!", r ? "yes" : "no");
+
+	return r; //return true on error so that an attempt to read is made
+}
+
+bool
 bufrd_ungetchar(bufrd_t b, int c)
 {
 	if (b->unget != -1)
@@ -117,6 +133,34 @@ bufrd_ungetchar(bufrd_t b, int c)
 	
 	b->unget = c;
 	return true;
+}
+
+
+size_t
+bufrd_getline(bufrd_t b, char *dest, size_t destsz)
+{
+	int c;
+	bool toosmall = false;
+	size_t bc = 0;
+	while ((c = bufrd_getchar(b)) != -1) {
+		if (destsz > 1) {
+			*dest++ = c;
+			destsz--;
+		} else
+			toosmall = true;
+
+		bc++;
+
+		if (c == '\n')
+			break;
+	}
+
+	if (toosmall)
+		W("buffer too small, stuff has been ignored");
+	
+	*dest = '\0';
+
+	return bc;
 }
 
 static ssize_t

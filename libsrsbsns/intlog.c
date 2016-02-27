@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>

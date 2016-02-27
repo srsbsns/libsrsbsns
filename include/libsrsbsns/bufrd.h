@@ -1,4 +1,4 @@
-/* bufrd.h - (C) 2012, Timo Buhrmester
+/* bufrd.h - (C) 2015, Timo Buhrmester
  * libsrsbsns - A srs lib
  * See README for contact-, COPYING for license information. */
 
@@ -19,5 +19,7 @@ int bufrd_getchar(bufrd_t b);
 bool bufrd_ungetchar(bufrd_t b, int c);
 bool bufrd_eof(bufrd_t b);
 bool bufrd_buffered(bufrd_t b);
+bool bufrd_canread(bufrd_t b);
+size_t bufrd_getline(bufrd_t b, char *dest, size_t destsz);
 
 #endif /* LIBSRSBSNS_BUFRD_H */
