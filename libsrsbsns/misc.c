@@ -9,6 +9,9 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+#include <signal.h>
+
+#include <unistd.h>
 
 #include <libsrsbsns/misc.h>
 
@@ -137,3 +140,14 @@ splitquoted(char *input, char **dest, size_t dest_nelem)
 
 	return n;
 }
+
+void
+dump_core(void)
+{
+	int r = fork();
+	if (r == -1)
+		E("could not dump core");
+	else if (r == 0)
+		raise(SIGABRT);
+}
+

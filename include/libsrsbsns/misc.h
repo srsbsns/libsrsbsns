@@ -20,4 +20,6 @@ char* strNcpy(char *dst, const char *src, size_t len);
 //call with dest_nelem = 0 to get number of args which would have been extracted
 int splitquoted(char *input, char **dest, size_t dest_nelem);
 
+void dump_core(void); // dump core without exiting
+
 #endif /* LIBSRSBSNS_MISC_H */
