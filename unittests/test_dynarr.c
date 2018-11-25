@@ -49,8 +49,8 @@ test_access(void)
 		return "array didn't grow properly";
 	
 	dynarr_get(a, 1337);
-	if (dynarr_count(a) != 1338)
-		return "array didn't grow properly";
+	if (dynarr_count(a) != 126)
+		return "array grew unexpectedly";
 
 	if (*(int*)dynarr_get(a, 125) != ia[4])
 		return "wrong element at index 125 after growing put";

@@ -88,9 +88,6 @@ provide_index(dynarr_t d, size_t index)
 			exit(EXIT_FAILURE);
 		}
 	}
-
-	if (index >= d->nused)
-		d->nused = index + 1;
 }
 
 void*
@@ -105,6 +102,9 @@ dynarr_put(dynarr_t d, size_t index, void *elem)
 {
 	provide_index(d, index);
 	d->data[index] = elem;
+
+	if (index >= d->nused)
+		d->nused = index + 1;
 }
 
 static void
