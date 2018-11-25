@@ -16,7 +16,7 @@ void idump(void *e)
 const char* /*UNITTEST*/
 test_basic(void)
 {
-	deque_t l = deque_init(10);
+	deque_t *l = deque_init(10);
 	if (deque_count(l) != 0)
 		return "newly allocated deque not empty";
 	
@@ -28,7 +28,7 @@ test_basic(void)
 const char* /*UNITTEST*/
 test_pushpop(void)
 {
-	deque_t d = deque_init(20);
+	deque_t *d = deque_init(20);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	for (size_t i = 0; i < COUNTOF(ia); i++)
 		if (!deque_pushback(d, &ia[i]))
@@ -133,7 +133,7 @@ test_pushpop(void)
 const char* /*UNITTEST*/
 test_grow(void)
 {
-	deque_t d = deque_init(0);
+	deque_t *d = deque_init(0);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 	for (size_t i = 0; i < COUNTOF(ia); i++)
 		if (!deque_pushback(d, &ia[i]))
@@ -243,7 +243,7 @@ test_grow(void)
 const char* /*UNITTEST*/
 test_iter(void)
 {
-	deque_t d = deque_init(10);
+	deque_t *d = deque_init(10);
 	int ia[] = {0,1,2,3,4,5,6,7,8,9};
 
 	for (size_t i = 0; i < COUNTOF(ia); i++)

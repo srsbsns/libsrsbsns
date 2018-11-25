@@ -8,7 +8,7 @@
 #include <libsrsbsns/stack.h>
 
 struct stack{
-	deque_t data;
+	deque_t *data;
 };
 
 stack_t

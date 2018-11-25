@@ -18,9 +18,9 @@ struct deque {
 	size_t pbcnt;
 };
 
-static bool deque_resize(deque_t d, size_t newsz);
+static bool deque_resize(deque_t *d, size_t newsz);
 
-deque_t
+deque_t *
 deque_init(size_t initsize)
 {
 	if (!initsize)
@@ -34,7 +34,7 @@ deque_init(size_t initsize)
 }
 
 void
-deque_dispose(deque_t d)
+deque_dispose(deque_t *d)
 {
 	if (!d)
 		return;
@@ -44,7 +44,7 @@ deque_dispose(deque_t d)
 }
 
 void
-deque_clear(deque_t d)
+deque_clear(deque_t *d)
 {
 	if (!d)
 		return;
@@ -53,13 +53,13 @@ deque_clear(deque_t d)
 }
 
 size_t
-deque_count(deque_t d)
+deque_count(deque_t *d)
 {
 	return d->front - d->back;
 }
 
 bool
-deque_pushfront(deque_t d, void* data)
+deque_pushfront(deque_t *d, void *data)
 {
 	if (!d || !data)
 		return false;
@@ -74,7 +74,7 @@ deque_pushfront(deque_t d, void* data)
 }
 
 bool
-deque_pushback(deque_t d, void* data)
+deque_pushback(deque_t *d, void *data)
 {
 	if (!d || !data)
 		return false;
@@ -89,7 +89,7 @@ deque_pushback(deque_t d, void* data)
 }
 
 static bool
-deque_resize(deque_t d, size_t newsz)
+deque_resize(deque_t *d, size_t newsz)
 {
 	if (!newsz)
 		newsz = 1;
@@ -124,7 +124,7 @@ deque_resize(deque_t d, size_t newsz)
 }
 
 bool
-deque_shrink(deque_t d, double countfac)
+deque_shrink(deque_t *d, double countfac)
 {
 	if (!d || countfac < 1.0)
 		return false;
@@ -132,8 +132,8 @@ deque_shrink(deque_t d, double countfac)
 	return deque_resize(d, (size_t)(countfac * deque_count(d)));
 }
 
-void*
-deque_popfront(deque_t d)
+void *
+deque_popfront(deque_t *d)
 {
 	if (!d || d->back == d->front)
 		return NULL;
@@ -146,8 +146,8 @@ deque_popfront(deque_t d)
 	return ret;
 }
 
-void*
-deque_popback(deque_t d)
+void *
+deque_popback(deque_t *d)
 {
 	if (!d || d->back == d->front)
 		return NULL;
@@ -160,20 +160,20 @@ deque_popback(deque_t d)
 	return ret;
 }
 
-void*
-deque_peekfront(deque_t d)
+void *
+deque_peekfront(deque_t *d)
 {
 	return d->front == d->back ? NULL : d->data[d->front-1];
 }
 
-void*
-deque_peekback(deque_t d)
+void *
+deque_peekback(deque_t *d)
 {
 	return d->front == d->back ? NULL : d->data[d->back];
 }
 
-void*
-deque_first(deque_t d, bool back)
+void *
+deque_first(deque_t *d, bool back)
 {
 	if (!d || d->front == d->back)
 		return NULL;
@@ -181,8 +181,8 @@ deque_first(deque_t d, bool back)
 	return d->data[d->iter = back ? d->back : d->front - 1];
 }
 
-void*
-deque_next(deque_t d, bool forwards)
+void *
+deque_next(deque_t *d, bool forwards)
 {
 	if (!d || (!forwards && d->iter <= d->back)
 	    || (forwards && d->iter + 1 >= d->front))
@@ -192,7 +192,7 @@ deque_next(deque_t d, bool forwards)
 }
 
 void
-deque_dump(deque_t d, deque_dump_fn dfn)
+deque_dump(deque_t *d, deque_dump_fn dfn)
 {
 	if (!d) {
 		fprintf(stderr, "(not a) deque %p\n", d);
