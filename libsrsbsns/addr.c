@@ -98,12 +98,19 @@ int addr_mksocket(const char *host, const char *service,
 	bool success = false;
 	int sck = -1;
 
+	size_t count = 0;
+	for (struct addrinfo *ai = ai_list; ai; ai = ai->ai_next)
+		count++;
+
+	if (hardto_us && softto_us * count < hardto_us)
+		softto_us = hardto_us / count;
+
 	D("iterating over result list...");
 	for (struct addrinfo *ai = ai_list; ai; ai = ai->ai_next) {
 		sck = -1;
 		if (hardtsend && hardtsend - tstamp_us() <= 0) {
 			W("hard timeout");
-			return 0;
+			goto fail;
 		}
 
 		D("next result, creating socket (fam=%d, styp=%d, prot=%d)",
@@ -251,7 +258,8 @@ int addr_mksocket(const char *host, const char *service,
 		}
 	}
 	
-	D("after loop; alling freeaddrinfo then returning %d", sck);
+fail:
+	D("after loop; calling freeaddrinfo then returning %d", sck);
 
 	freeaddrinfo(ai_list);
 
